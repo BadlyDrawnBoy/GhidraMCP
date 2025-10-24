@@ -3,9 +3,11 @@ package com.lauriewired;
 import ghidra.framework.plugintool.Plugin;
 import ghidra.framework.plugintool.PluginTool;
 import ghidra.program.model.address.Address;
+import ghidra.program.model.address.AddressOutOfBoundsException;
 import ghidra.program.model.address.GlobalNamespace;
 import ghidra.program.model.listing.*;
 import ghidra.program.model.mem.MemoryBlock;
+import ghidra.program.model.mem.MemoryAccessException;
 import ghidra.program.model.symbol.*;
 import ghidra.program.model.symbol.ReferenceManager;
 import ghidra.program.model.symbol.Reference;
@@ -71,6 +73,10 @@ public class GhidraMCPPlugin extends Plugin {
     private static final String OPTION_CATEGORY_NAME = "GhidraMCP HTTP Server";
     private static final String PORT_OPTION_NAME = "Server Port";
     private static final int DEFAULT_PORT = 8080;
+    private static final int DEFAULT_HEXDUMP_WIDTH = 16;
+    private static final int MAX_BYTE_READ = 0x200;      // 512 bytes
+    private static final int MAX_DATA_WINDOW = 0x800;    // 2048 bytes
+    private static final int MAX_CSTRING_LEN = 0x800;    // 2048 chars
 
     public GhidraMCPPlugin(PluginTool tool) {
         super(tool);
@@ -124,6 +130,26 @@ public class GhidraMCPPlugin extends Plugin {
         server.createContext("/decompile", exchange -> {
             String name = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             sendResponse(exchange, decompileFunctionByName(name));
+        });
+
+        server.createContext("/read_dword", exchange -> {
+            Map<String, String> qparams = parseQueryParams(exchange);
+            String address = qparams.get("address");
+            sendResponse(exchange, readDword(address));
+        });
+
+        server.createContext("/read_bytes", exchange -> {
+            Map<String, String> qparams = parseQueryParams(exchange);
+            String address = qparams.get("address");
+            int length = parseIntOrDefault(qparams.get("length"), 16);
+            sendResponse(exchange, readBytes(address, length));
+        });
+
+        server.createContext("/read_cstring", exchange -> {
+            Map<String, String> qparams = parseQueryParams(exchange);
+            String address = qparams.get("address");
+            int maxLen = parseIntOrDefault(qparams.get("max_len"), 256);
+            sendResponse(exchange, readCString(address, maxLen));
         });
 
         server.createContext("/renameFunction", exchange -> {
@@ -183,6 +209,13 @@ public class GhidraMCPPlugin extends Plugin {
             sendResponse(exchange, listDefinedData(offset, limit));
         });
 
+        server.createContext("/data_window", exchange -> {
+            Map<String, String> qparams = parseQueryParams(exchange);
+            String start = qparams.get("start");
+            String end = qparams.get("end");
+            sendResponse(exchange, readDataWindow(start, end));
+        });
+
         server.createContext("/searchFunctions", exchange -> {
             Map<String, String> qparams = parseQueryParams(exchange);
             String searchTerm = qparams.get("query");
@@ -208,7 +241,17 @@ public class GhidraMCPPlugin extends Plugin {
         });
 
         server.createContext("/list_functions", exchange -> {
-            sendResponse(exchange, listFunctions());
+            Map<String, String> qparams = parseQueryParams(exchange);
+            int offset = parseIntOrDefault(qparams.get("offset"), 0);
+            int limit  = parseIntOrDefault(qparams.get("limit"), 100);
+            sendResponse(exchange, listFunctions(offset, limit));
+        });
+
+        server.createContext("/functions", exchange -> {
+            Map<String, String> qparams = parseQueryParams(exchange);
+            int offset = parseIntOrDefault(qparams.get("offset"), 0);
+            int limit  = parseIntOrDefault(qparams.get("limit"), 100);
+            sendResponse(exchange, listFunctions(offset, limit));
         });
 
         server.createContext("/decompile_function", exchange -> {
@@ -217,7 +260,19 @@ public class GhidraMCPPlugin extends Plugin {
             sendResponse(exchange, decompileFunctionByAddress(address));
         });
 
+        server.createContext("/decompile_by_addr", exchange -> {
+            Map<String, String> qparams = parseQueryParams(exchange);
+            String address = qparams.get("address");
+            sendResponse(exchange, decompileFunctionByAddress(address));
+        });
+
         server.createContext("/disassemble_function", exchange -> {
+            Map<String, String> qparams = parseQueryParams(exchange);
+            String address = qparams.get("address");
+            sendResponse(exchange, disassembleFunction(address));
+        });
+
+        server.createContext("/disassemble", exchange -> {
             Map<String, String> qparams = parseQueryParams(exchange);
             String address = qparams.get("address");
             sendResponse(exchange, disassembleFunction(address));
@@ -704,6 +759,217 @@ public class GhidraMCPPlugin extends Plugin {
     // ----------------------------------------------------------------------------------
 
     /**
+     * Read a 32-bit little-endian value from memory.
+     */
+    private String readDword(String addressStr) {
+        Program program = getCurrentProgram();
+        if (program == null) return "No program loaded";
+        if (addressStr == null || addressStr.isEmpty()) return "ERROR: address is required";
+
+        try {
+            Address addr = program.getAddressFactory().getAddress(addressStr);
+            byte[] buffer = new byte[4];
+            int read = program.getMemory().getBytes(addr, buffer);
+            if (read < 4) {
+                return "ERROR: unable to read 4 bytes at " + addressStr;
+            }
+
+            long value = ((long) buffer[0] & 0xff)
+                | (((long) buffer[1] & 0xff) << 8)
+                | (((long) buffer[2] & 0xff) << 16)
+                | (((long) buffer[3] & 0xff) << 24);
+
+            return String.format("0x%08x", value);
+        } catch (MemoryAccessException e) {
+            return "ERROR: memory access failed: " + e.getMessage();
+        } catch (Exception e) {
+            return "ERROR: " + e.getMessage();
+        }
+    }
+
+    /**
+     * Read raw bytes from memory with a hexdump style formatting.
+     */
+    private String readBytes(String addressStr, int length) {
+        Program program = getCurrentProgram();
+        if (program == null) return "No program loaded";
+        if (addressStr == null || addressStr.isEmpty()) return "ERROR: address is required";
+
+        int effectiveLength = clampLength(length, MAX_BYTE_READ);
+        if (effectiveLength <= 0) {
+            return "ERROR: length must be greater than zero";
+        }
+
+        try {
+            Address addr = program.getAddressFactory().getAddress(addressStr);
+            byte[] buffer = new byte[effectiveLength];
+            int read = program.getMemory().getBytes(addr, buffer);
+            if (read <= 0) {
+                return "ERROR: unable to read memory at " + addressStr;
+            }
+
+            String dump = formatHexDump(addr, buffer, read);
+            if (read < effectiveLength || length > effectiveLength) {
+                dump += String.format("\n... (truncated to %d bytes)", read);
+            }
+            return dump;
+        } catch (MemoryAccessException e) {
+            return "ERROR: memory access failed: " + e.getMessage();
+        } catch (AddressOutOfBoundsException e) {
+            return "ERROR: address out of bounds";
+        } catch (Exception e) {
+            return "ERROR: " + e.getMessage();
+        }
+    }
+
+    /**
+     * Read a zero terminated string from memory.
+     */
+    private String readCString(String addressStr, int maxLen) {
+        Program program = getCurrentProgram();
+        if (program == null) return "No program loaded";
+        if (addressStr == null || addressStr.isEmpty()) return "ERROR: address is required";
+
+        int effectiveLen = clampLength(maxLen, MAX_CSTRING_LEN);
+        if (effectiveLen <= 0) {
+            return "ERROR: max_len must be greater than zero";
+        }
+
+        try {
+            Address addr = program.getAddressFactory().getAddress(addressStr);
+            StringBuilder builder = new StringBuilder();
+            boolean terminated = false;
+
+            for (int i = 0; i < effectiveLen; i++) {
+                byte value = program.getMemory().getByte(addr);
+                if (value == 0) {
+                    terminated = true;
+                    break;
+                }
+                builder.append(toPrintableByte(value));
+                addr = addr.add(1);
+            }
+
+            if (!terminated) {
+                if (builder.length() > 0) {
+                    builder.append('\n');
+                }
+                builder.append(String.format("[truncated after %d bytes]", effectiveLen));
+            }
+
+            return builder.toString();
+        } catch (MemoryAccessException e) {
+            return "ERROR: memory access failed: " + e.getMessage();
+        } catch (AddressOutOfBoundsException e) {
+            return "ERROR: address out of bounds";
+        } catch (Exception e) {
+            return "ERROR: " + e.getMessage();
+        }
+    }
+
+    /**
+     * Read a bounded data window and return a hexdump.
+     */
+    private String readDataWindow(String startStr, String endStr) {
+        Program program = getCurrentProgram();
+        if (program == null) return "No program loaded";
+        if (startStr == null || endStr == null) return "ERROR: start and end are required";
+
+        try {
+            Address start = program.getAddressFactory().getAddress(startStr);
+            Address end = program.getAddressFactory().getAddress(endStr);
+
+            if (start == null || end == null) {
+                return "ERROR: invalid address range";
+            }
+
+            if (start.compareTo(end) >= 0) {
+                return "ERROR: start must be less than end";
+            }
+
+            long span = end.subtract(start);
+            if (span <= 0) {
+                return "ERROR: invalid range length";
+            }
+
+            long cappedSpan = Math.min(span, MAX_DATA_WINDOW);
+            int bytesToRead = (int) cappedSpan;
+            if (bytesToRead <= 0) {
+                return "ERROR: empty range";
+            }
+
+            byte[] buffer = new byte[bytesToRead];
+            int read = program.getMemory().getBytes(start, buffer);
+            if (read <= 0) {
+                return "ERROR: unable to read memory";
+            }
+
+            String dump = formatHexDump(start, buffer, read);
+            if (read < bytesToRead || span > bytesToRead) {
+                dump += String.format("\n... (truncated to %d bytes)", read);
+            }
+            return dump;
+        } catch (MemoryAccessException e) {
+            return "ERROR: memory access failed: " + e.getMessage();
+        } catch (AddressOutOfBoundsException e) {
+            return "ERROR: address out of bounds";
+        } catch (Exception e) {
+            return "ERROR: " + e.getMessage();
+        }
+    }
+
+    /**
+     * Format bytes into a traditional hex + ASCII dump.
+     */
+    private String formatHexDump(Address start, byte[] data, int length) throws AddressOutOfBoundsException {
+        if (length <= 0) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < length; i += DEFAULT_HEXDUMP_WIDTH) {
+            int chunk = Math.min(DEFAULT_HEXDUMP_WIDTH, length - i);
+            Address lineAddress = start.add(i);
+            StringBuilder ascii = new StringBuilder();
+
+            sb.append(String.format("%s: ", lineAddress));
+            for (int j = 0; j < chunk; j++) {
+                int value = data[i + j] & 0xff;
+                sb.append(String.format("%02x ", value));
+                ascii.append((value >= 32 && value < 127) ? (char) value : '.');
+            }
+
+            if (chunk < DEFAULT_HEXDUMP_WIDTH) {
+                for (int j = chunk; j < DEFAULT_HEXDUMP_WIDTH; j++) {
+                    sb.append("   ");
+                }
+            }
+
+            sb.append("|").append(ascii).append("|");
+            if (i + chunk < length) {
+                sb.append('\n');
+            }
+        }
+
+        return sb.toString();
+    }
+
+    private int clampLength(int requested, int max) {
+        if (requested <= 0) {
+            return 0;
+        }
+        return Math.min(requested, max);
+    }
+
+    private String toPrintableByte(byte value) {
+        int unsigned = value & 0xff;
+        if (unsigned >= 32 && unsigned < 127) {
+            return Character.toString((char) unsigned);
+        }
+        return String.format("\\x%02x", unsigned);
+    }
+
+    /**
      * Get function by address
      */
     private String getFunctionByAddress(String addressStr) {
@@ -765,18 +1031,16 @@ public class GhidraMCPPlugin extends Plugin {
     /**
      * List all functions in the database
      */
-    private String listFunctions() {
+    private String listFunctions(int offset, int limit) {
         Program program = getCurrentProgram();
         if (program == null) return "No program loaded";
 
-        StringBuilder result = new StringBuilder();
+        List<String> entries = new ArrayList<>();
         for (Function func : program.getFunctionManager().getFunctions(true)) {
-            result.append(String.format("%s at %s\n", 
-                func.getName(), 
-                func.getEntryPoint()));
+            entries.add(String.format("%s at %s", func.getName(), func.getEntryPoint()));
         }
 
-        return result.toString();
+        return paginateList(entries, offset, limit);
     }
 
     /**
