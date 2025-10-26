@@ -1,0 +1,215 @@
+"""HTTP client wrapper around the Ghidra MCP bridge plugin."""
+from __future__ import annotations
+
+from dataclasses import dataclass
+import logging
+from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional
+from urllib.parse import urljoin
+
+import httpx
+
+from .models import FunctionMeta, Xref
+from .whitelist import DEFAULT_WHITELIST, WhitelistEntry
+
+logger = logging.getLogger("ghidra.bridge.client")
+
+
+ENDPOINT_CANDIDATES: Mapping[str, Iterable[str]] = {
+    "DECOMPILE_BY_ADDR": ("decompile_by_addr", "decompileByAddress"),
+    "DISASSEMBLE": ("disassemble", "disassemble_function", "disasmByAddr"),
+    "FUNC_BY_ADDR": ("function_by_addr", "get_function_by_address", "functionMeta"),
+    "GET_XREFS_TO": ("get_xrefs_to", "xrefs_to"),
+}
+
+
+@dataclass(slots=True)
+class EndpointResolver:
+    candidates: Mapping[str, Iterable[str]]
+
+    def __post_init__(self) -> None:
+        self._cache: MutableMapping[str, str] = {}
+
+    def resolve(self, key: str, requester: "EndpointRequester") -> List[str]:
+        cached = self._cache.get(key)
+        if cached:
+            result = requester.request(cached)
+            if not _is_error(result):
+                return result
+        last_error: List[str] = [f"ERROR: no candidates for {key}"]
+        for candidate in self.candidates.get(key, (key,)):
+            result = requester.request(candidate)
+            if not _is_error(result):
+                self._cache[key] = candidate
+                return result
+            last_error = result
+        return last_error
+
+
+class EndpointRequester:
+    def __init__(self, client: "GhidraClient", method: str, *, params: Optional[Dict[str, Any]] = None) -> None:
+        self.client = client
+        self.method = method
+        self.params = params or {}
+
+    def request(self, path: str) -> List[str]:
+        if self.method == "GET":
+            return self.client._request_lines("GET", path, params=self.params)
+        raise ValueError(f"Unsupported method {self.method}")
+
+
+def _is_error(lines: List[str]) -> bool:
+    return bool(lines) and lines[0].startswith("ERROR:")
+
+
+class GhidraClient:
+    """Small wrapper that handles whitelist enforcement and alias resolution."""
+
+    def __init__(
+        self,
+        base_url: str,
+        *,
+        timeout: float = 30.0,
+        whitelist: Optional[Mapping[str, Iterable[WhitelistEntry]]] = None,
+        transport: Optional[httpx.BaseTransport] = None,
+    ) -> None:
+        self.base_url = base_url if base_url.endswith("/") else f"{base_url}/"
+        self.timeout = timeout
+        self._session = httpx.Client(timeout=timeout, transport=transport)
+        self._whitelist = whitelist or DEFAULT_WHITELIST
+        self._resolver = EndpointResolver(ENDPOINT_CANDIDATES)
+
+    # ------------------------------------------------------------------
+    # low level
+    # ------------------------------------------------------------------
+
+    def _is_allowed(self, method: str, path: str) -> bool:
+        entries = self._whitelist.get(method.upper(), ())
+        return any(entry.path == path for entry in entries)
+
+    def _request_lines(
+        self,
+        method: str,
+        path: str,
+        *,
+        params: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None,
+    ) -> List[str]:
+        if not self._is_allowed(method, path):
+            logger.error("Attempted to call non-whitelisted endpoint %s %s", method, path)
+            return [f"ERROR: endpoint {method} {path} not allowed"]
+        url = urljoin(self.base_url, path)
+        try:
+            response = self._session.request(method, url, params=params, data=data)
+        except httpx.HTTPError as exc:  # pragma: no cover - transport errors are environment specific
+            return [f"ERROR: Request failed: {exc}"]
+        if response.is_error:
+            return [f"ERROR: {response.status_code}: {response.text.strip()}"]
+        text = response.text
+        lines = text.replace("\r\n", "\n").splitlines()
+        return lines
+
+    # ------------------------------------------------------------------
+    # public helpers
+    # ------------------------------------------------------------------
+
+    def read_dword(self, address: int) -> Optional[int]:
+        result = self._request_lines("GET", "read_dword", params={"address": f"0x{address:08x}"})
+        if _is_error(result) or not result:
+            logger.warning("read_dword failed for 0x%08x: %s", address, result[:1])
+            return None
+        line = result[0].strip()
+        try:
+            return int(line, 16)
+        except ValueError:
+            logger.warning("Unexpected read_dword payload %s", line)
+            return None
+
+    def disassemble_function(self, address: int) -> List[str]:
+        requester = EndpointRequester(self, "GET", params={"address": f"0x{address:08x}"})
+        lines = self._resolver.resolve("DISASSEMBLE", requester)
+        return [] if _is_error(lines) else lines
+
+    def get_function_by_address(self, address: int) -> Optional[FunctionMeta]:
+        requester = EndpointRequester(self, "GET", params={"address": f"0x{address:08x}"})
+        lines = self._resolver.resolve("FUNC_BY_ADDR", requester)
+        if _is_error(lines):
+            return None
+        meta: Dict[str, Any] = {}
+        for line in lines:
+            if ":" in line:
+                key, value = line.split(":", 1)
+            elif "=" in line:
+                key, value = line.split("=", 1)
+            else:
+                continue
+            meta[key.strip()] = value.strip()
+        if "entry_point" in meta:
+            try:
+                meta["entry_point"] = int(meta["entry_point"], 16)
+            except ValueError:
+                pass
+        if "address" in meta:
+            try:
+                meta["address"] = int(meta["address"], 16)
+            except ValueError:
+                pass
+        return meta if meta else None
+
+    def get_xrefs_to(self, address: int, *, limit: int = 50) -> List[Xref]:
+        requester = EndpointRequester(
+            self,
+            "GET",
+            params={"address": f"0x{address:08x}", "limit": int(limit)},
+        )
+        lines = self._resolver.resolve("GET_XREFS_TO", requester)
+        if _is_error(lines):
+            return []
+        out: List[Xref] = []
+        for line in lines:
+            parts = line.split("|", 1)
+            if not parts:
+                continue
+            addr_str = parts[0].strip()
+            context = parts[1].strip() if len(parts) > 1 else ""
+            try:
+                addr_val = int(addr_str, 16)
+            except ValueError:
+                continue
+            out.append({"addr": addr_val, "context": context})
+        return out
+
+    def rename_function(self, address: int, new_name: str) -> bool:
+        response = self._request_lines(
+            "POST",
+            "rename_function_by_address",
+            data={"function_address": f"0x{address:08x}", "new_name": new_name},
+        )
+        return not _is_error(response)
+
+    def set_decompiler_comment(self, address: int, comment: str) -> bool:
+        response = self._request_lines(
+            "POST",
+            "set_decompiler_comment",
+            data={"address": f"0x{address:08x}", "comment": comment},
+        )
+        return not _is_error(response)
+
+    def set_disassembly_comment(self, address: int, comment: str) -> bool:
+        response = self._request_lines(
+            "POST",
+            "set_disassembly_comment",
+            data={"address": f"0x{address:08x}", "comment": comment},
+        )
+        return not _is_error(response)
+
+    def close(self) -> None:
+        self._session.close()
+
+    def __enter__(self) -> "GhidraClient":  # pragma: no cover - convenience wrapper
+        return self
+
+    def __exit__(self, *exc_info: Any) -> None:  # pragma: no cover - convenience wrapper
+        self.close()
+
+
+__all__ = ["GhidraClient", "ENDPOINT_CANDIDATES"]
