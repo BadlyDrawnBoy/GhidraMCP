@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:schema:jt-scan.request.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "jt_base",
+    "start",
+    "count",
+    "code_min",
+    "code_max"
+  ],
+  "properties": {
+    "jt_base": {
+      "type": "string",
+      "pattern": "^0x[0-9a-fA-F]+$"
+    },
+    "start": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 256
+    },
+    "code_min": {
+      "type": "string",
+      "pattern": "^0x[0-9a-fA-F]+$"
+    },
+    "code_max": {
+      "type": "string",
+      "pattern": "^0x[0-9a-fA-F]+$"
+    },
+    "arch": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

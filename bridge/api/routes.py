@@ -1,9 +1,10 @@
 """Starlette routes exposing deterministic HTTP endpoints."""
 from __future__ import annotations
 
+import json
 import logging
 from functools import wraps
-from typing import Callable, Dict
+from typing import Callable, Dict, Tuple
 
 import httpx
 from starlette.requests import Request
@@ -20,8 +21,37 @@ from ._shared import adapter_for_arch, envelope_error, envelope_ok
 from .validators import validate_payload
 
 
-async def _json_body(request: Request) -> Dict[str, object]:
-    return await request.json()
+async def _validated_json_body(
+    request: Request, schema: str
+) -> Tuple[Dict[str, object] | None, JSONResponse | None]:
+    try:
+        data = await request.json()
+    except json.JSONDecodeError as exc:
+        return (
+            None,
+            JSONResponse(
+                envelope_error(ErrorCode.INVALID_ARGUMENT, f"Invalid JSON payload: {exc.msg}"),
+                status_code=400,
+            ),
+        )
+    if not isinstance(data, dict):
+        return (
+            None,
+            JSONResponse(
+                envelope_error(ErrorCode.INVALID_ARGUMENT, "Payload must be a JSON object."),
+                status_code=400,
+            ),
+        )
+    valid, errors = validate_payload(schema, data)
+    if not valid:
+        return (
+            None,
+            JSONResponse(
+                envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors)),
+                status_code=400,
+            ),
+        )
+    return data, None
 
 
 def _with_client(factory: Callable[[], GhidraClient], *, enable_writes: bool):
@@ -82,7 +112,12 @@ def make_routes(
             logger=logger,
             extra={"path": "/api/jt_slot_check.json"},
         ):
-            data = await _json_body(request)
+            data, error = await _validated_json_body(
+                request, "jt_slot_check.request.v1.json"
+            )
+            if error is not None:
+                return error
+            assert data is not None
             try:
                 adapter = adapter_for_arch(str(data.get("arch", "auto")))
                 payload = jt.slot_check(
@@ -116,7 +151,12 @@ def make_routes(
             logger=logger,
             extra={"path": "/api/jt_slot_process.json"},
         ):
-            data = await _json_body(request)
+            data, error = await _validated_json_body(
+                request, "jt_slot_process.request.v1.json"
+            )
+            if error is not None:
+                return error
+            assert data is not None
             try:
                 adapter = adapter_for_arch(str(data.get("arch", "auto")))
                 payload = jt.slot_process(
@@ -154,7 +194,10 @@ def make_routes(
             logger=logger,
             extra={"path": "/api/jt_scan.json"},
         ):
-            data = await _json_body(request)
+            data, error = await _validated_json_body(request, "jt_scan.request.v1.json")
+            if error is not None:
+                return error
+            assert data is not None
             try:
                 adapter = adapter_for_arch(str(data.get("arch", "auto")))
                 payload = jt.scan(
@@ -189,7 +232,12 @@ def make_routes(
             logger=logger,
             extra={"path": "/api/string_xrefs.json"},
         ):
-            data = await _json_body(request)
+            data, error = await _validated_json_body(
+                request, "string_xrefs.request.v1.json"
+            )
+            if error is not None:
+                return error
+            assert data is not None
             try:
                 payload = strings.xrefs_compact(
                     client,
@@ -219,7 +267,12 @@ def make_routes(
             logger=logger,
             extra={"path": "/api/mmio_annotate.json"},
         ):
-            data = await _json_body(request)
+            data, error = await _validated_json_body(
+                request, "mmio_annotate.request.v1.json"
+            )
+            if error is not None:
+                return error
+            assert data is not None
             try:
                 payload = mmio.annotate(
                     client,

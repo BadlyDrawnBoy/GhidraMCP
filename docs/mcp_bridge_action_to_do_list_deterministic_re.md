@@ -51,8 +51,9 @@
 5. ✅ **Register MCP tools**: `jt_slot_check`, `jt_slot_process`, `jt_scan`, `string_xrefs_compact`, `mmio_annotate_compact`
    - **DoD:** Tools visible in capability listing; round‑trip returns an envelope.
    - ✅ `bridge/api/tools.py` attaches each deterministic helper to the `FastMCP` server and validates responses before returning envelopes.
-6. ⬜️ **Enable schema validator** (server‑side, `additionalProperties:false`)
+6. ✅ **Enable schema validator** (server‑side, `additionalProperties:false`)
    - **DoD:** Invalid payloads → 400/error envelope; valid → 200/`ok:true`.
+   - ✅ Added JSON request schemas for every deterministic endpoint with `additionalProperties:false` and wired them into the Starlette routes so malformed bodies short-circuit with `SCHEMA_INVALID`/`INVALID_ARGUMENT` responses.
 
 ---
 

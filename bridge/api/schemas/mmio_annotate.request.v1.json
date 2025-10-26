@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:schema:mmio-annotate.request.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "function_addr"
+  ],
+  "properties": {
+    "function_addr": {
+      "type": "string",
+      "pattern": "^0x[0-9a-fA-F]+$"
+    },
+    "dry_run": {
+      "type": "boolean"
+    },
+    "max_samples": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 256
+    }
+  }
+}
