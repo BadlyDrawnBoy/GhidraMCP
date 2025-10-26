@@ -16,24 +16,17 @@
 #       or runners (like Aider) that perform pre-processing and substitute
 #       the results of previous tool calls.
 
-import argparse
 import logging
 import os
 import re
-import threading
 from typing import Optional, Dict, Any, List
 from urllib.parse import urljoin
 
 import requests
-import httpx
-import uvicorn
-from starlette.applications import Starlette
-from starlette.responses import JSONResponse, StreamingResponse, PlainTextResponse
-from starlette.routing import Route
-from starlette.requests import Request
-
 from mcp.server.fastmcp import FastMCP
 
+from bridge.cli import build_parser as build_cli_parser, run as run_cli
+from bridge.shim import build_openwebui_shim
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Logging & Defaults
@@ -584,128 +577,26 @@ def find_text_window(q: str, start: str, end: str, case: bool = False, regex: bo
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Shim/Proxy-App (Port 8081): Löst Open-WebUI-Verify & proxyt SSE/Messages
-# ──────────────────────────────────────────────────────────────────────────────
-
-def build_shim_app(upstream_base: str) -> Starlette:
-    async def openapi_get(request: Request):
-        return JSONResponse({
-            "openapi": "3.1.0",
-            "info": {"title": "Ghidra MCP Bridge (stub)", "version": "0.1"},
-            "x-openwebui-mcp": {"transport": "sse", "sse_url": "/sse", "messages_url": "/messages"}
-        })
-
-    async def openapi_post(request: Request):
-        try:
-            body = await request.json()
-            req_id = body.get("id", 0)
-        except Exception:
-            req_id = 0
-
-        return JSONResponse({
-            "jsonrpc": "2.0",
-            "id": req_id,
-            "result": {
-                "protocolVersion": "2025-06-18",
-                "capabilities": {
-                    "experimental": {},
-                    "prompts":   {"listChanged": False},
-                    "resources": {"subscribe": False, "listChanged": False},
-                    "tools":     {"listChanged": False}
-                },
-                "serverInfo": {"name": "ghidra-mcp", "version": "1.14.1"}
-            }
-        })
-
-    async def health(request: Request):
-        return JSONResponse({"ok": True, "type": "mcp-sse",
-                             "endpoints": {"sse": "/sse", "messages": "/messages"}})
-
-    async def root_post_ok(request: Request):
-        return JSONResponse({"jsonrpc": "2.0", "id": 0, "result": {"ok": True}})
-
-    async def sse_proxy(request: Request):
-        url = upstream_base + "/sse"
-        headers = {"accept": "text/event-stream"}
-        params = dict(request.query_params)
-
-        async def event_generator():
-            async with httpx.AsyncClient(timeout=None) as client:
-                async with client.stream("GET", url, params=params, headers=headers) as upstream:
-                    async for chunk in upstream.aiter_bytes():
-                        yield chunk
-
-        return StreamingResponse(
-            event_generator(),
-            media_type="text/event-stream",
-            headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"},
-        )
-
-    async def messages_proxy(request: Request):
-        url = upstream_base + request.url.path
-        data = await request.body()
-        headers = {"content-type": request.headers.get("content-type", "application/json")}
-        params = dict(request.query_params)
-
-        async with httpx.AsyncClient(timeout=120, follow_redirects=True) as client:
-            resp = await client.post(url, content=data, headers=headers, params=params)
-            return PlainTextResponse(
-                resp.text,
-                status_code=resp.status_code,
-                headers={"content-type": resp.headers.get("content-type", "application/json")},
-            )
-
-    routes = [
-        Route("/openapi.json", openapi_get,  methods=["GET"]),
-        Route("/openapi.json", openapi_post, methods=["POST"]),
-        Route("/health",       health,       methods=["GET"]),
-        Route("/",             root_post_ok, methods=["POST"]),
-        Route("/sse",          sse_proxy,    methods=["GET"]),
-        Route("/messages",     messages_proxy, methods=["POST"]),
-        Route("/messages/",    messages_proxy, methods=["POST"]),
-    ]
-    return Starlette(debug=False, routes=routes)
-
-
-# ──────────────────────────────────────────────────────────────────────────────
 # Main / CLI
 # ──────────────────────────────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(description="Ghidra MCP Bridge with SSE and OpenWebUI shim")
-    parser.add_argument("--ghidra-server", type=str, default=DEFAULT_GHIDRA_SERVER,
-                        help=f"Ghidra-Bridge URL, default: {DEFAULT_GHIDRA_SERVER}")
-    parser.add_argument("--transport", type=str, default="sse", choices=["stdio", "sse"],
-                        help="MCP-Transport (Open WebUI braucht SSE).")
-    parser.add_argument("--mcp-host", type=str, default="127.0.0.1",
-                        help="Host für internen MCP-SSE-Server (Upstream), default: 127.0.0.1")
-    parser.add_argument("--mcp-port", type=int, default=8099,
-                        help="Port für internen MCP-SSE-Server (Upstream), default: 8099")
-    parser.add_argument("--shim-host", type=str, default="127.0.0.1",
-                        help="Host für Shim/Proxy (für Open WebUI), default: 127.0.0.1")
-    parser.add_argument("--shim-port", type=int, default=8081,
-                        help="Port für Shim/Proxy (für Open WebUI), default: 8081")
-    parser.add_argument("--debug", action="store_true", help="Enable debug logging")
+    parser = build_cli_parser(DEFAULT_GHIDRA_SERVER)
     args = parser.parse_args()
 
-    if args.debug:
-        logger.setLevel(logging.DEBUG)
+    def _set_ghidra_url(url: str) -> None:
+        global ghidra_server_url
+        ghidra_server_url = url
 
-    global ghidra_server_url
-    ghidra_server_url = os.getenv("GHIDRA_SERVER_URL", args.ghidra_server or DEFAULT_GHIDRA_SERVER)
-    logger.info(f"[Bridge] Connecting to Ghidra server at {ghidra_server_url}")
-
-    if args.transport == "sse":
-        t = threading.Thread(target=start_mcp_sse, args=(args.mcp_host, args.mcp_port), daemon=True)
-        t.start()
-
-        upstream_base = f"http://{args.mcp_host}:{args.mcp_port}"
-        app = build_shim_app(upstream_base)
-        logger.info(f"[Shim] OpenWebUI endpoint on http://{args.shim_host}:{args.shim_port}/openapi.json")
-        uvicorn.run(app, host=args.shim_host, port=int(args.shim_port))
-    else:
-        logger.info("[MCP] Running in stdio mode (no SSE).")
-        mcp.run()
+    run_cli(
+        args,
+        logger=logger,
+        default_ghidra_server=DEFAULT_GHIDRA_SERVER,
+        set_ghidra_url=_set_ghidra_url,
+        start_sse=start_mcp_sse,
+        run_stdio=mcp.run,
+        shim_factory=build_openwebui_shim,
+    )
 
 
 if __name__ == "__main__":
