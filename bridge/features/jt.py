@@ -41,7 +41,7 @@ class JTProcessResult(JTSlotResult):
     comment_present: bool
 
     def to_dict(self) -> Dict[str, object]:
-        payload = super().to_dict()
+        payload = JTSlotResult.to_dict(self)
         payload.update(
             {
                 "writes": {"renamed": self.renamed, "comment_set": self.comment_set},
