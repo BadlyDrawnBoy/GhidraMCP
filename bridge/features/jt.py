@@ -6,6 +6,7 @@ from typing import Dict, List, Optional
 
 from ..adapters import ArchAdapter
 from ..ghidra.client import GhidraClient
+from ..utils.config import ENABLE_WRITES
 from ..utils.errors import ErrorCode
 from ..utils.hex import int_to_hex, slot_address
 
@@ -99,6 +100,7 @@ def slot_process(
     comment: str,
     adapter: ArchAdapter,
     dry_run: bool = True,
+    writes_enabled: bool = ENABLE_WRITES,
 ) -> Dict[str, object]:
     check = slot_check(
         client,
@@ -124,6 +126,9 @@ def slot_process(
     if result.errors or not result.target:
         if dry_run is False and not result.errors:
             result.errors.append(ErrorCode.NO_FUNCTION_AT_TARGET.value)
+        return result.to_dict()
+    if not dry_run and not writes_enabled:
+        result.errors.append(ErrorCode.WRITE_DISABLED_DRY_RUN.value)
         return result.to_dict()
     target_int = int(result.target, 16)
     if dry_run:

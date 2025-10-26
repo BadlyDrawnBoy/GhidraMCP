@@ -10,6 +10,7 @@ from starlette.routing import Route
 
 from ..features import jt, mmio, strings
 from ..ghidra.client import GhidraClient
+from ..utils.config import ENABLE_WRITES
 from ..utils.errors import ErrorCode
 from ..utils.hex import parse_hex
 from ._shared import adapter_for_arch, envelope_error, envelope_ok
@@ -20,10 +21,11 @@ async def _json_body(request: Request) -> Dict[str, object]:
     return await request.json()
 
 
-def _with_client(factory: Callable[[], GhidraClient]):
+def _with_client(factory: Callable[[], GhidraClient], *, enable_writes: bool):
     def decorator(func):
         @wraps(func)
         async def wrapper(request: Request):
+            request.state.enable_writes = enable_writes
             client = factory()
             try:
                 return await func(request, client)
@@ -35,8 +37,10 @@ def _with_client(factory: Callable[[], GhidraClient]):
     return decorator
 
 
-def make_routes(client_factory: Callable[[], GhidraClient]):
-    with_client = _with_client(client_factory)
+def make_routes(
+    client_factory: Callable[[], GhidraClient], *, enable_writes: bool = ENABLE_WRITES
+):
+    with_client = _with_client(client_factory, enable_writes=enable_writes)
 
     @with_client
     async def jt_slot_check_route(request: Request, client: GhidraClient):
@@ -72,6 +76,7 @@ def make_routes(client_factory: Callable[[], GhidraClient]):
                 comment=str(data.get("comment", "")),
                 adapter=adapter,
                 dry_run=bool(data.get("dry_run", True)),
+                writes_enabled=enable_writes,
             )
         except (KeyError, ValueError) as exc:
             return JSONResponse(envelope_error(ErrorCode.INVALID_ARGUMENT, str(exc)), status_code=400)
@@ -123,6 +128,15 @@ def make_routes(client_factory: Callable[[], GhidraClient]):
                 function_addr=parse_hex(str(data["function_addr"])),
                 dry_run=bool(data.get("dry_run", True)),
                 max_samples=int(data.get("max_samples", 8)),
+                writes_enabled=enable_writes,
+            )
+        except mmio.WritesDisabledError:
+            return JSONResponse(
+                envelope_error(
+                    ErrorCode.WRITE_DISABLED_DRY_RUN,
+                    "Writes are disabled while dry_run is false.",
+                ),
+                status_code=400,
             )
         except (KeyError, ValueError) as exc:
             return JSONResponse(envelope_error(ErrorCode.INVALID_ARGUMENT, str(exc)), status_code=400)

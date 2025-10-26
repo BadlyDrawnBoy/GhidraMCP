@@ -7,13 +7,19 @@ from mcp.server.fastmcp import FastMCP
 
 from ..features import jt, mmio, strings
 from ..ghidra.client import GhidraClient
+from ..utils.config import ENABLE_WRITES
 from ..utils.errors import ErrorCode
 from ..utils.hex import parse_hex
 from ._shared import adapter_for_arch, envelope_error, envelope_ok, with_client
 from .validators import validate_payload
 
 
-def register_tools(server: FastMCP, *, client_factory: Callable[[], GhidraClient]) -> None:
+def register_tools(
+    server: FastMCP,
+    *,
+    client_factory: Callable[[], GhidraClient],
+    enable_writes: bool = ENABLE_WRITES,
+) -> None:
     tool_client = with_client(client_factory)
 
     @server.tool()
@@ -64,6 +70,7 @@ def register_tools(server: FastMCP, *, client_factory: Callable[[], GhidraClient
             comment=comment,
             adapter=adapter,
             dry_run=dry_run,
+            writes_enabled=enable_writes,
         )
         valid, errors = validate_payload("jt_slot_process.v1.json", data)
         if not valid:
@@ -121,12 +128,19 @@ def register_tools(server: FastMCP, *, client_factory: Callable[[], GhidraClient
         dry_run: bool = True,
         max_samples: int = 8,
     ) -> Dict[str, object]:
-        data = mmio.annotate(
-            client,
-            function_addr=parse_hex(function_addr),
-            dry_run=dry_run,
-            max_samples=max_samples,
-        )
+        try:
+            data = mmio.annotate(
+                client,
+                function_addr=parse_hex(function_addr),
+                dry_run=dry_run,
+                max_samples=max_samples,
+                writes_enabled=enable_writes,
+            )
+        except mmio.WritesDisabledError:
+            return envelope_error(
+                ErrorCode.WRITE_DISABLED_DRY_RUN,
+                "Writes are disabled while dry_run is false.",
+            )
         valid, errors = validate_payload("mmio_annotate.v1.json", data)
         if not valid:
             return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
