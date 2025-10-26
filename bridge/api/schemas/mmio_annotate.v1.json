@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:schema:mmio-annotate.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["function", "reads", "writes", "bitwise_or", "bitwise_and", "toggles", "annotated", "samples"],
+  "properties": {
+    "function": {"type": "string", "pattern": "^0x[0-9a-fA-F]+$"},
+    "reads": {"type": "integer", "minimum": 0},
+    "writes": {"type": "integer", "minimum": 0},
+    "bitwise_or": {"type": "integer", "minimum": 0},
+    "bitwise_and": {"type": "integer", "minimum": 0},
+    "toggles": {"type": "integer", "minimum": 0},
+    "annotated": {"type": "integer", "minimum": 0},
+    "samples": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["addr", "op", "target"],
+        "properties": {
+          "addr": {"type": "string", "pattern": "^0x[0-9a-fA-F]+$"},
+          "op": {"type": "string", "enum": ["READ", "WRITE", "OR", "AND", "TOGGLE"]},
+          "target": {"type": "string", "pattern": "^0x[0-9a-fA-F]+$"}
+        }
+      }
+    }
+  }
+}

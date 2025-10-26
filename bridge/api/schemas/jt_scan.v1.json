@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:schema:jt-scan.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["range", "summary", "items"],
+  "properties": {
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "count"],
+      "properties": {
+        "start": {"type": "integer", "minimum": 0},
+        "count": {"type": "integer", "minimum": 1}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "valid", "invalid"],
+      "properties": {
+        "total": {"type": "integer", "minimum": 0},
+        "valid": {"type": "integer", "minimum": 0},
+        "invalid": {"type": "integer", "minimum": 0}
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {"$ref": "urn:schema:jt-slot-check.v1"}
+    }
+  }
+}
