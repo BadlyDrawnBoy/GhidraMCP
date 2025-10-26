@@ -11,6 +11,24 @@
 
 ---
 
+## 00) Agent bootstrap (project discovery)
+
+1. ⬜️ **Discover runtime & entrypoint**
+   - Identify Python version and dependency manager; locate server entrypoint (script or ASGI app) and document how to run it locally.
+   - **DoD:** README section "Local Run" with exact commands; confirmed server boots.
+2. ⬜️ **Environment variables & configuration**
+   - Enumerate required env vars (e.g., upstream Ghidra HTTP base URL, ports, timeouts); create `.env.sample`.
+   - **DoD:** `.env.sample` committed; README documents each variable.
+3. ⬜️ **Health & smoke checks**
+   - Add/verify a simple health route or MCP tool (ping upstream, version); provide curl example.
+   - **DoD:** `curl` smoke test works against local server.
+4. ⬜️ **Test harness**
+   - Ensure `pytest` (or chosen runner) executes unit/contract suites; document how to run.
+   - **DoD:** `pytest -q` (or equivalent) documented; baseline test run passes.
+5. ⬜️ **Single‑branch PR setup**
+   - Create feature branch and draft PR scaffolding; add `.ci/AGENT_LOCK` policy description.
+   - **DoD:** PR description contains checklist & policy; lock file semantics documented.
+
 ## 0) Non‑breaking & parity (immediately)
 
 1. ⬜️ **Inventory legacy APIs** (all existing MCP tools/routes with signature + example response)
