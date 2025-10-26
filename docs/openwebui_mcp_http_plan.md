@@ -147,7 +147,7 @@ All tools must return the shared envelope and validate against their JSON schema
 
 | Step | Plan | Progress |
 | ---- | ---- | -------- |
-| 0 | Inventory legacy APIs, capture golden outputs, introduce `ENABLE_WRITES` flag | Not started. No feature flag or snapshots in repo. |
+| 0 | Inventory legacy APIs, capture golden outputs, introduce `ENABLE_WRITES` flag | Feature flag landed via `GHIDRA_MCP_ENABLE_WRITES`; snapshot capture still pending.【F:bridge/utils/config.py†L1-L22】【F:bridge/features/jt.py†L91-L152】【F:bridge/features/mmio.py†L1-L32】 |
 | 1 | Extract adapters and whitelisted client | **Done** (see `bridge/adapters/*`, `bridge/ghidra/client.py`). |
 | 2 | Implement JT features (read-only, then writes) | Mostly complete; write verification still needs feature flags and integration tests. |
 | 3 | Expose new MCP tools and HTTP routes | Implemented in `bridge/api/*`, but not mounted by the production entry point yet. |
@@ -190,7 +190,7 @@ All tools must return the shared envelope and validate against their JSON schema
 ## 14. Next Actions
 
 1. Extract the shim and CLI wiring into the new package while keeping legacy behavior intact.
-2. Introduce the `ENABLE_WRITES` flag and wrap write operations in JT/MMIO features with the proper gating.
+2. ✅ Introduce the `ENABLE_WRITES` flag and wrap write operations in JT/MMIO features with the proper gating (unit coverage in place).【F:bridge/tests/unit/test_enable_writes_flag.py†L1-L74】
 3. Flesh out `features/mmio.py` and enhance string context extraction per the plan.
 4. Mount the new MCP/HTTP API from `bridge/app.py` inside the production server and run parity tests against the legacy paths.
 5. Build the promised unit, contract, and golden test suites before removing the monolithic logic.
