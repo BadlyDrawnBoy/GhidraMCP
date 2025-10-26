@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Dict, Iterable, List, Tuple
 
 from bridge.features import mmio
+from bridge.utils import config
 from bridge.utils.hex import int_to_hex
 
 
@@ -69,12 +70,12 @@ def test_mmio_annotate_collects_statistics_without_writes() -> None:
 
 def test_mmio_annotate_writes_comments_when_enabled() -> None:
     client = _make_client()
-    original_flag = mmio.ENABLE_WRITES
-    mmio.ENABLE_WRITES = True
+    original_flag = config.ENABLE_WRITES
+    config.ENABLE_WRITES = True
     try:
         result = mmio.annotate(client, function_addr=0x1000, dry_run=False, max_samples=2)
     finally:
-        mmio.ENABLE_WRITES = original_flag
+        config.ENABLE_WRITES = original_flag
 
     assert client.calls["set_comment"] == 2
     assert result["annotated"] == 2

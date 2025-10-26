@@ -6,6 +6,7 @@ from typing import Dict, List, Optional
 
 from ..adapters import ArchAdapter
 from ..ghidra.client import GhidraClient
+from ..utils import config
 from ..utils.errors import ErrorCode
 from ..utils.hex import int_to_hex, slot_address
 from . import mmio
@@ -131,7 +132,7 @@ def slot_process(
         meta = client.get_function_by_address(target_int)
         result.verify_name = meta.get("name") if meta else None
         return result.to_dict()
-    if not mmio.ENABLE_WRITES:
+    if not config.ENABLE_WRITES:
         result.errors.append(ErrorCode.WRITE_DISABLED_DRY_RUN.value)
         return result.to_dict()
     try:

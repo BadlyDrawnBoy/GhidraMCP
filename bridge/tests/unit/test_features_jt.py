@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from bridge.features import jt, mmio
+from bridge.utils import config
 
 
 @dataclass
@@ -41,8 +42,8 @@ class _StubClient:
 def test_slot_process_respects_enable_writes_flag() -> None:
     client = _StubClient()
     adapter = _StubAdapter()
-    original_flag = mmio.ENABLE_WRITES
-    mmio.ENABLE_WRITES = False
+    original_flag = config.ENABLE_WRITES
+    config.ENABLE_WRITES = False
     try:
         result = jt.slot_process(
             client,
@@ -56,7 +57,7 @@ def test_slot_process_respects_enable_writes_flag() -> None:
             dry_run=False,
         )
     finally:
-        mmio.ENABLE_WRITES = original_flag
+        config.ENABLE_WRITES = original_flag
 
     assert result["errors"] == ["WRITE_DISABLED_DRY_RUN"]
     assert client.rename_calls == 0

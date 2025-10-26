@@ -6,16 +6,12 @@ import re
 from typing import Dict, Iterable, List, Optional
 
 from ..ghidra.client import GhidraClient
+from ..utils import config
 from ..utils.hex import int_to_hex
 
 # ---------------------------------------------------------------------------
 # configuration
 # ---------------------------------------------------------------------------
-
-# Writes are disabled by default so that analysis can safely run in read-only
-# scenarios (e.g., schema validation during tests or local dry runs). Set to
-# ``True`` when writes should be attempted.
-ENABLE_WRITES = False
 
 COMMENT_PREFIX = "[MMIO]"
 
@@ -258,7 +254,7 @@ def annotate(
                 {"addr": int_to_hex(op.address), "op": op.op, "target": int_to_hex(op.target)}
             )
 
-    if not dry_run and ENABLE_WRITES and samples:
+    if not dry_run and config.ENABLE_WRITES and samples:
         expected_comments: Dict[int, str] = {}
         for op in operations[: len(samples)]:
             if client.set_disassembly_comment(op.address, op.comment):
@@ -269,7 +265,7 @@ def annotate(
             for addr, text in expected_comments.items():
                 if comment_lookup.get(addr) == text:
                     annotated += 1
-    elif not dry_run and not ENABLE_WRITES:
+    elif not dry_run and not config.ENABLE_WRITES:
         annotated = 0
 
     return {
@@ -284,4 +280,4 @@ def annotate(
     }
 
 
-__all__ = ["annotate", "ENABLE_WRITES"]
+__all__ = ["annotate"]
