@@ -25,6 +25,7 @@ from urllib.parse import urljoin
 import requests
 from mcp.server.fastmcp import FastMCP
 
+from bridge.app import build_api_app, set_ghidra_base_url
 from bridge.cli import build_parser as build_cli_parser, run as run_cli
 from bridge.shim import build_openwebui_shim
 
@@ -587,6 +588,11 @@ def main():
     def _set_ghidra_url(url: str) -> None:
         global ghidra_server_url
         ghidra_server_url = url
+        set_ghidra_base_url(url)
+
+    def _shim_factory(upstream_base: str):
+        api_app = build_api_app()
+        return build_openwebui_shim(upstream_base, extra_routes=api_app.routes)
 
     run_cli(
         args,
@@ -595,7 +601,7 @@ def main():
         set_ghidra_url=_set_ghidra_url,
         start_sse=start_mcp_sse,
         run_stdio=mcp.run,
-        shim_factory=build_openwebui_shim,
+        shim_factory=_shim_factory,
     )
 
 
