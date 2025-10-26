@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:schema:string-xrefs.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["string", "count", "callers"],
+  "properties": {
+    "string": {"type": "string", "pattern": "^0x[0-9a-fA-F]+$"},
+    "count": {"type": "integer", "minimum": 0},
+    "callers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["addr", "context"],
+        "properties": {
+          "addr": {"type": "string", "pattern": "^0x[0-9a-fA-F]+$"},
+          "context": {"type": "string"}
+        }
+      }
+    }
+  }
+}

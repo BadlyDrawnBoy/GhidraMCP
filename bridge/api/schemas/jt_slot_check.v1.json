@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:schema:jt-slot-check.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["slot", "slot_addr", "raw", "mode", "target", "errors"],
+  "properties": {
+    "slot": {"type": "integer", "minimum": 0},
+    "slot_addr": {"type": "string", "pattern": "^0x[0-9a-fA-F]+$"},
+    "raw": {"type": "string", "pattern": "^0x[0-9a-fA-F]+$"},
+    "mode": {"type": "string", "enum": ["ARM", "Thumb", "none"]},
+    "target": {
+      "oneOf": [
+        {"type": "string", "pattern": "^0x[0-9a-fA-F]+$"},
+        {"type": "null"}
+      ]
+    },
+    "notes": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "errors": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  }
+}
