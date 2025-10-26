@@ -3,13 +3,17 @@
 from __future__ import annotations
 
 import httpx
+from typing import Sequence
+
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse, StreamingResponse, PlainTextResponse
 from starlette.routing import Route
 from starlette.requests import Request
 
 
-def build_openwebui_shim(upstream_base: str) -> Starlette:
+def build_openwebui_shim(
+    upstream_base: str, *, extra_routes: Sequence[Route] | None = None
+) -> Starlette:
     """Create a Starlette app exposing the legacy OpenWebUI shim routes."""
 
     async def openapi_get(request: Request):  # pragma: no cover - thin glue
@@ -113,6 +117,8 @@ def build_openwebui_shim(upstream_base: str) -> Starlette:
         Route("/messages", messages_proxy, methods=["POST"]),
         Route("/messages/", messages_proxy, methods=["POST"]),
     ]
+    if extra_routes:
+        routes.extend(extra_routes)
     return Starlette(debug=False, routes=routes)
 
 

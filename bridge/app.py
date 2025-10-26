@@ -13,12 +13,19 @@ from .ghidra.client import GhidraClient
 from .utils.logging import configure_root
 
 MCP_SERVER = FastMCP("ghidra-bridge")
-DEFAULT_GHIDRA_URL = os.getenv("GHIDRA_SERVER_URL", "http://127.0.0.1:8080/")
+_ghidra_server_url = os.getenv("GHIDRA_SERVER_URL", "http://127.0.0.1:8080/")
 _CONFIGURED = False
 
 
+def set_ghidra_base_url(url: str) -> None:
+    """Override the default Ghidra server used by API client factories."""
+
+    global _ghidra_server_url
+    _ghidra_server_url = url
+
+
 def _client_factory() -> GhidraClient:
-    return GhidraClient(DEFAULT_GHIDRA_URL)
+    return GhidraClient(_ghidra_server_url)
 
 
 def configure() -> None:
@@ -36,4 +43,4 @@ def build_api_app() -> Starlette:
     return Starlette(routes=routes)
 
 
-__all__ = ["MCP_SERVER", "configure", "build_api_app"]
+__all__ = ["MCP_SERVER", "configure", "build_api_app", "set_ghidra_base_url"]
