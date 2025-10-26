@@ -139,7 +139,7 @@ All tools must return the shared envelope and validate against their JSON schema
 - **Golden tests:** snapshot legacy outputs for parity checks during migration.
 - **Integration tests:** mocked Ghidra server covering happy and failure paths.
 
-**Status:** Only `test_adapters_arm_thumb.py` exists today. All other unit, contract, golden, and integration suites remain to be written.【F:bridge/tests/unit/test_adapters_arm_thumb.py†L1-L41】
+**Status:** Initial unit coverage exists for adapters, strings, MMIO, logging, whitelist enforcement, and feature flags, and contract tests now assert schema compliance for the deterministic HTTP endpoints. Golden snapshots and full integration suites still need to be written.【F:bridge/tests/unit/test_adapters_arm_thumb.py†L1-L41】【F:bridge/tests/contract/test_http_contracts.py†L1-L131】
 
 ---
 
