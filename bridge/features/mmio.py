@@ -4,7 +4,13 @@ from __future__ import annotations
 from typing import Dict, List
 
 from ..ghidra.client import GhidraClient
+from ..utils.config import ENABLE_WRITES
+from ..utils.errors import ErrorCode
 from ..utils.hex import int_to_hex
+
+
+class WritesDisabledError(RuntimeError):
+    """Raised when a write is requested but writes are disabled."""
 
 
 def annotate(
@@ -13,7 +19,10 @@ def annotate(
     function_addr: int,
     dry_run: bool = True,
     max_samples: int = 8,
+    writes_enabled: bool = ENABLE_WRITES,
 ) -> Dict[str, object]:
+    if not dry_run and not writes_enabled:
+        raise WritesDisabledError(ErrorCode.WRITE_DISABLED_DRY_RUN.value)
     # The detailed analysis requires instruction decoding which will be implemented
     # in a future iteration. For now we return a deterministic placeholder so the
     # API surface is wired and covered by schema validation.
@@ -29,4 +38,4 @@ def annotate(
     }
 
 
-__all__ = ["annotate"]
+__all__ = ["annotate", "WritesDisabledError"]
