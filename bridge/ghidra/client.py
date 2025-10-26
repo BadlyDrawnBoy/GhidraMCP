@@ -1,7 +1,7 @@
 """HTTP client wrapper around the Ghidra MCP bridge plugin."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import logging
 from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional
 from urllib.parse import urljoin
@@ -25,9 +25,10 @@ ENDPOINT_CANDIDATES: Mapping[str, Iterable[str]] = {
 @dataclass(slots=True)
 class EndpointResolver:
     candidates: Mapping[str, Iterable[str]]
+    _cache: MutableMapping[str, str] = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
-        self._cache: MutableMapping[str, str] = {}
+        self._cache = {}
 
     def resolve(self, key: str, requester: "EndpointRequester") -> List[str]:
         cached = self._cache.get(key)
@@ -46,14 +47,22 @@ class EndpointResolver:
 
 
 class EndpointRequester:
-    def __init__(self, client: "GhidraClient", method: str, *, params: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(
+        self,
+        client: "GhidraClient",
+        method: str,
+        *,
+        key: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> None:
         self.client = client
         self.method = method
+        self.key = key
         self.params = params or {}
 
     def request(self, path: str) -> List[str]:
         if self.method == "GET":
-            return self.client._request_lines("GET", path, params=self.params)
+            return self.client._request_lines("GET", path, key=self.key, params=self.params)
         raise ValueError(f"Unsupported method {self.method}")
 
 
@@ -82,19 +91,29 @@ class GhidraClient:
     # low level
     # ------------------------------------------------------------------
 
-    def _is_allowed(self, method: str, path: str) -> bool:
+    def _is_allowed(self, method: str, *, key: Optional[str] = None, path: Optional[str] = None) -> bool:
         entries = self._whitelist.get(method.upper(), ())
-        return any(entry.path == path for entry in entries)
+        if key is not None:
+            for entry in entries:
+                if entry.key == key:
+                    if path is None:
+                        return True
+                    return entry.allows(path)
+            return False
+        if path is not None:
+            return any(entry.allows(path) for entry in entries)
+        raise ValueError("Either key or path must be provided for whitelist checks")
 
     def _request_lines(
         self,
         method: str,
         path: str,
         *,
+        key: Optional[str] = None,
         params: Optional[Dict[str, Any]] = None,
         data: Optional[Dict[str, Any]] = None,
     ) -> List[str]:
-        if not self._is_allowed(method, path):
+        if not self._is_allowed(method, key=key, path=path):
             logger.error("Attempted to call non-whitelisted endpoint %s %s", method, path)
             return [f"ERROR: endpoint {method} {path} not allowed"]
         url = urljoin(self.base_url, path)
@@ -113,7 +132,12 @@ class GhidraClient:
     # ------------------------------------------------------------------
 
     def read_dword(self, address: int) -> Optional[int]:
-        result = self._request_lines("GET", "read_dword", params={"address": f"0x{address:08x}"})
+        result = self._request_lines(
+            "GET",
+            "read_dword",
+            key="READ_DWORD",
+            params={"address": f"0x{address:08x}"},
+        )
         if _is_error(result) or not result:
             logger.warning("read_dword failed for 0x%08x: %s", address, result[:1])
             return None
@@ -125,12 +149,22 @@ class GhidraClient:
             return None
 
     def disassemble_function(self, address: int) -> List[str]:
-        requester = EndpointRequester(self, "GET", params={"address": f"0x{address:08x}"})
+        requester = EndpointRequester(
+            self,
+            "GET",
+            key="DISASSEMBLE",
+            params={"address": f"0x{address:08x}"},
+        )
         lines = self._resolver.resolve("DISASSEMBLE", requester)
         return [] if _is_error(lines) else lines
 
     def get_function_by_address(self, address: int) -> Optional[FunctionMeta]:
-        requester = EndpointRequester(self, "GET", params={"address": f"0x{address:08x}"})
+        requester = EndpointRequester(
+            self,
+            "GET",
+            key="FUNC_BY_ADDR",
+            params={"address": f"0x{address:08x}"},
+        )
         lines = self._resolver.resolve("FUNC_BY_ADDR", requester)
         if _is_error(lines):
             return None
@@ -159,6 +193,7 @@ class GhidraClient:
         requester = EndpointRequester(
             self,
             "GET",
+            key="GET_XREFS_TO",
             params={"address": f"0x{address:08x}", "limit": int(limit)},
         )
         lines = self._resolver.resolve("GET_XREFS_TO", requester)
@@ -182,6 +217,7 @@ class GhidraClient:
         response = self._request_lines(
             "POST",
             "rename_function_by_address",
+            key="RENAME_FUNCTION",
             data={"function_address": f"0x{address:08x}", "new_name": new_name},
         )
         return not _is_error(response)
@@ -190,6 +226,7 @@ class GhidraClient:
         response = self._request_lines(
             "POST",
             "set_decompiler_comment",
+            key="SET_DECOMPILER_COMMENT",
             data={"address": f"0x{address:08x}", "comment": comment},
         )
         return not _is_error(response)
@@ -198,6 +235,7 @@ class GhidraClient:
         response = self._request_lines(
             "POST",
             "set_disassembly_comment",
+            key="SET_DISASSEMBLY_COMMENT",
             data={"address": f"0x{address:08x}", "comment": comment},
         )
         return not _is_error(response)
