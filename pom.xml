@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -10,8 +11,15 @@
   <name>GhidraMCP</name>
   <url>http://maven.apache.org</url>
 
+  <!-- Java-/Build-Defaults -->
+  <properties>
+    <!-- Nutze das JDK 21 Toolchain-Level (empfohlen statt source/target) -->
+    <maven.compiler.release>21</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
   <dependencies>
-    <!-- Ghidra JARs as system-scoped dependencies -->
+    <!-- Ghidra JARs als system-scope (lokal in lib/) -->
     <dependency>
       <groupId>ghidra</groupId>
       <artifactId>Generic</artifactId>
@@ -69,7 +77,7 @@
       <systemPath>${project.basedir}/lib/Gui.jar</systemPath>
     </dependency>
 
-    <!-- JUnit (test only) -->
+    <!-- Tests -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -80,7 +88,17 @@
 
   <build>
     <plugins>
-      <!-- Use custom MANIFEST.MF -->
+      <!-- Compiler: setze Java 21 über "release" -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <release>${maven.compiler.release}</release>
+        </configuration>
+      </plugin>
+
+      <!-- Jar mit eigenem MANIFEST -->
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <version>3.2.2</version>
@@ -88,35 +106,26 @@
           <archive>
             <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
           </archive>
-          <!-- Set a fixed name for the JAR without version -->
           <finalName>GhidraMCP</finalName>
-          <!-- Exclude the App class -->
           <excludes>
             <exclude>**/App.class</exclude>
           </excludes>
-          <!-- Make sure output directory is target for consistency -->
           <outputDirectory>${project.build.directory}</outputDirectory>
         </configuration>
       </plugin>
-      
-      <!-- The Assembly Plugin for creating the Ghidra extension ZIP -->
+
+      <!-- Assembly: Ghidra-Extension-ZIP bauen -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>3.3.0</version>
         <configuration>
-          <!-- Using the custom assembly descriptor -->
           <descriptors>
             <descriptor>src/assembly/ghidra-extension.xml</descriptor>
           </descriptors>
-          
-          <!-- The name of the final zip -->
           <finalName>GhidraMCP-${project.version}</finalName>
-          
-          <!-- Don't append the assembly ID -->
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
-        
         <executions>
           <execution>
             <id>make-assembly</id>
@@ -127,8 +136,8 @@
           </execution>
         </executions>
       </plugin>
-      
-      <!-- Copy dependencies to target/lib for the assembly -->
+
+      <!-- Dependencies in target/lib für das ZIP spiegeln -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -150,3 +159,4 @@
     </plugins>
   </build>
 </project>
+
