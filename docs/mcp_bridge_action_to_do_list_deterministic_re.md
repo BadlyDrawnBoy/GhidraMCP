@@ -13,21 +13,21 @@
 
 ## 00) Agent bootstrap (project discovery)
 
-1. ⬜️ **Discover runtime & entrypoint**
-   - Identify Python version and dependency manager; locate server entrypoint (script or ASGI app) and document how to run it locally.
-   - **DoD:** README section "Local Run" with exact commands; confirmed server boots.
-2. ⬜️ **Environment variables & configuration**
-   - Enumerate required env vars (e.g., upstream Ghidra HTTP base URL, ports, timeouts); create `.env.sample`.
-   - **DoD:** `.env.sample` committed; README documents each variable.
-3. ⬜️ **Health & smoke checks**
-   - Add/verify a simple health route or MCP tool (ping upstream, version); provide curl example.
-   - **DoD:** `curl` smoke test works against local server.
-4. ⬜️ **Test harness**
-   - Ensure `pytest` (or chosen runner) executes unit/contract suites; document how to run.
-   - **DoD:** `pytest -q` (or equivalent) documented; baseline test run passes.
-5. ⬜️ **Single‑branch PR setup**
-   - Create feature branch and draft PR scaffolding; add `.ci/AGENT_LOCK` policy description.
-   - **DoD:** PR description contains checklist & policy; lock file semantics documented.
+1. ✅ **Discover runtime & entrypoint**
+   - README now contains a "Local run" section with Python 3.10+ / `pip` instructions and confirmed boot log.
+   - Added a reproducible command sequence and captured boot success in the README.
+2. ✅ **Environment variables & configuration**
+   - `.env.sample` lists the upstream URL, safety limits, and test toggles.
+   - README now documents every variable and default for quick reference.
+3. ✅ **Health & smoke checks**
+   - Added `/api/health.json` route that reports upstream reachability and writes flag.
+   - Documented `curl` smoke test output for local verification.
+4. ✅ **Test harness**
+   - `requirements-dev.txt` plus README instructions cover the pytest workflow.
+   - Baseline `pytest` run recorded; README points to the command.
+5. ✅ **Single‑branch PR setup**
+   - Added tasks manifest, PR template and `.ci/AGENT_LOCK` policy file.
+   - Single-branch policy lives in the PR template + lock-file documentation.
 
 ## 0) Non‑breaking & parity (immediately)
 
