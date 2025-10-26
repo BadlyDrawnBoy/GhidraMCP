@@ -92,7 +92,7 @@ All tools must return the shared envelope and validate against their JSON schema
 
 - `annotate` scans disassembly for read/write/toggle patterns and performs optional comment writes when `dry_run=False`.
 
-**Status:** Jump-table helpers are substantially implemented, including error codes and adapters. String helpers exist but still rely on simple pass-throughs for context. MMIO logic is currently a placeholder that returns deterministic zeroed fields without analysis, so further work is required to meet the plan.【F:bridge/features/mmio.py†L1-L30】
+**Status:** Jump-table helpers are substantially implemented, including error codes and adapters. String helpers now enrich caller context with argument indices, call hints, and sanitized snippets, backed by targeted unit coverage—additional edge-case tests may still be desirable for parity confidence.【F:bridge/features/strings.py†L1-L172】【F:bridge/tests/unit/test_strings_feature.py†L1-L98】 MMIO logic is currently a placeholder that returns deterministic zeroed fields without analysis, so further work is required to meet the plan.【F:bridge/features/mmio.py†L1-L30】
 
 ---
 
