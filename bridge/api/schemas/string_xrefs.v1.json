@@ -15,7 +15,9 @@
         "required": ["addr", "context"],
         "properties": {
           "addr": {"type": "string", "pattern": "^0x[0-9a-fA-F]+$"},
-          "context": {"type": "string"}
+          "context": {"type": "string"},
+          "arg_index": {"type": "integer", "minimum": 0},
+          "hint": {"type": "string"}
         }
       }
     }
