@@ -89,9 +89,23 @@ def test_mmio_annotate_raises_when_writes_disabled_and_dry_run_false():
         )
 
 
+class DummyMMIOClient:
+    def __init__(self):
+        self.calls = []
+
+    def disassemble_function(self, address):
+        self.calls.append(address)
+        return ["00500000: NOP"]
+
+    def set_disassembly_comment(self, address, comment):  # pragma: no cover - not used here
+        return True
+
+
 def test_mmio_annotate_allows_dry_run_with_writes_disabled():
+    client = DummyMMIOClient()
+
     payload = mmio.annotate(
-        object(),
+        client,
         function_addr=0x500000,
         dry_run=True,
         writes_enabled=False,
@@ -100,3 +114,4 @@ def test_mmio_annotate_allows_dry_run_with_writes_disabled():
     assert payload["function"] == "0x00500000"
     assert payload["annotated"] == 0
     assert payload["samples"] == []
+    assert client.calls == [0x500000]
