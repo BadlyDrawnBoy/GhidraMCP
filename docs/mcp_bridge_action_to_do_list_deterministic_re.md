@@ -31,21 +31,26 @@
 
 ## 0) Non‑breaking & parity (immediately)
 
-1. ⬜️ **Inventory legacy APIs** (all existing MCP tools/routes with signature + example response)
+1. ✅ **Inventory legacy APIs** (all existing MCP tools/routes with signature + example response)
    - **DoD:** Appendix A list complete and versioned in the repo.
-2. ⬜️ **Golden snapshots** for legacy tools (contract tests)
+   - ✅ Appendix A (see below) captures every shipped HTTP route and MCP tool with requests and envelope examples.
+2. ✅ **Golden snapshots** for legacy tools (contract tests)
    - **DoD:** Tests green; any behavioral change fails CI.
-3. ⬜️ **Feature flag **`` (default `false`) + `dry_run:true` as request default
+   - ✅ `bridge/tests/golden/test_http_parity.py` exercises every deterministic endpoint against `bridge/tests/golden/data/http_snapshots.json`.
+3. ✅ **Feature flag **`` (default `false`) + `dry_run:true` as request default
    - **DoD:** All write‑capable paths honor the flag & parameter.
+   - ✅ `bridge/utils/config.py` exposes `ENABLE_WRITES` (default `False`); HTTP routes and MCP tools default `dry_run=True` while preventing writes unless the flag allows it.
 
 ---
 
 ## 1) API wiring (enable deterministic endpoints)
 
-4. ⬜️ **Mount routes**: `/api/jt_slot_check.json`, `/api/jt_slot_process.json`, `/api/jt_scan.json`, `/api/string_xrefs.json`, `/api/mmio_annotate.json`
+4. ✅ **Mount routes**: `/api/jt_slot_check.json`, `/api/jt_slot_process.json`, `/api/jt_scan.json`, `/api/string_xrefs.json`, `/api/mmio_annotate.json`
    - **DoD:** Server startup log shows mounted paths; curl probe returns a schema‑validated envelope JSON.
-5. ⬜️ **Register MCP tools**: `jt_slot_check`, `jt_slot_process`, `jt_scan`, `string_xrefs_compact`, `mmio_annotate_compact`
+   - ✅ `bridge/api/routes.py` wires every path; contract tests post sample payloads and validate the envelopes with JSON Schema.
+5. ✅ **Register MCP tools**: `jt_slot_check`, `jt_slot_process`, `jt_scan`, `string_xrefs_compact`, `mmio_annotate_compact`
    - **DoD:** Tools visible in capability listing; round‑trip returns an envelope.
+   - ✅ `bridge/api/tools.py` attaches each deterministic helper to the `FastMCP` server and validates responses before returning envelopes.
 6. ⬜️ **Enable schema validator** (server‑side, `additionalProperties:false`)
    - **DoD:** Invalid payloads → 400/error envelope; valid → 200/`ok:true`.
 
@@ -200,4 +205,33 @@
 - Single branch + PR keeps a **single source of truth**.
 - Lock + drift checks prevent parallel runs fighting each other.
 - Idempotent tasks + manifest allow safe re‑runs.
+
+---
+
+## Appendix A – Legacy API inventory
+
+### HTTP routes (Starlette)
+
+| Route | Method | Request fields | Response envelope example |
+| --- | --- | --- | --- |
+| `/api/health.json` | `GET` | _None_ | `{ "ok": true, "data": { "service": "ghidra-mcp-bridge", "writes_enabled": false, "ghidra": { "base_url": "http://127.0.0.1:8080/", "reachable": false } }, "errors": [] }` |
+| `/api/jt_slot_check.json` | `POST` | `jt_base` (hex), `slot_index` (int), `code_min` (hex), `code_max` (hex), optional `arch` (`"auto"` default) | Snapshot key `jt_slot_check` in `bridge/tests/golden/data/http_snapshots.json` |
+| `/api/jt_slot_process.json` | `POST` | `jt_base`, `slot_index`, `code_min`, `code_max`, `rename_pattern`, `comment`, optional `dry_run` (default `true`), optional `arch` | Snapshot keys `jt_slot_process_dry_run` and `jt_slot_process_writes` |
+| `/api/jt_scan.json` | `POST` | `jt_base`, `start`, `count`, `code_min`, `code_max`, optional `arch` | Snapshot key `jt_scan` |
+| `/api/string_xrefs.json` | `POST` | `string_addr`, optional `limit` (default `50`) | Snapshot key `string_xrefs` |
+| `/api/mmio_annotate.json` | `POST` | `function_addr`, optional `dry_run` (default `true`), optional `max_samples` (default `8`) | Snapshot key `mmio_annotate` |
+
+Each payload is validated against the corresponding schema under `bridge/api/schemas/`, and responses wrap deterministic data within the standard `{ "ok": bool, "data": object \| null, "errors": [] }` envelope.
+
+### MCP tools (FastMCP)
+
+| Tool name | Parameters | Response envelope example |
+| --- | --- | --- |
+| `jt_slot_check` | `jt_base: str`, `slot_index: int`, `code_min: str`, `code_max: str`, `arch: str = "auto"` | Shares the `jt_slot_check` snapshot envelope |
+| `jt_slot_process` | `jt_base: str`, `slot_index: int`, `code_min: str`, `code_max: str`, `rename_pattern: str`, `comment: str`, `dry_run: bool = True`, `arch: str = "auto"` | Matches the HTTP dry-run/write envelopes |
+| `jt_scan` | `jt_base: str`, `start: int`, `count: int`, `code_min: str`, `code_max: str`, `arch: str = "auto"` | Matches the HTTP `jt_scan` snapshot |
+| `string_xrefs_compact` | `string_addr: str`, `limit: int = 50` | Mirrors the HTTP `string_xrefs` envelope |
+| `mmio_annotate_compact` | `function_addr: str`, `dry_run: bool = True`, `max_samples: int = 8` | Mirrors the HTTP `mmio_annotate` envelope |
+
+All tools funnel through `bridge/api/tools.py`, which reuses the same feature modules as the HTTP surface and validates responses with the shared JSON Schemas before yielding an MCP envelope.
 
