@@ -31,6 +31,79 @@ Because the refactor is still underway, you will find both the legacy `bridge_mc
 4. Run the Python bridge using `python bridge_mcp_ghidra.py --transport sse --ghidra-server http://127.0.0.1:8080/` (adjust arguments for your setup).
 5. Point your MCP client (Claude Desktop, Cline, OpenWebUI, etc.) at the SSE endpoint exposed by the bridge.
 
+## Local run (deterministic bridge)
+
+The modular bridge currently targets **Python 3.10+** and uses `pip` for dependency management. The entry point is the legacy
+`bridge_mcp_ghidra.py` script, which now wires in the deterministic API (`bridge.app`) and SSE shim.
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
+cp .env.sample .env  # optional: customise GHIDRA_SERVER_URL, safety limits, etc.
+python bridge_mcp_ghidra.py --transport sse --ghidra-server http://127.0.0.1:8080/ \
+  --mcp-port 8099 --shim-port 8081
+```
+
+With the server running locally you can hit the deterministic HTTP surface directly via the shim:
+
+```bash
+curl -s http://127.0.0.1:8081/api/health.json | jq
+```
+
+Expected output (when the upstream Ghidra HTTP plugin is offline) looks like this:
+
+```json
+{
+  "ok": true,
+  "data": {
+    "service": "ghidra-mcp-bridge",
+    "writes_enabled": false,
+    "ghidra": {
+      "base_url": "http://127.0.0.1:8080/",
+      "reachable": false,
+      "error": "[Errno 111] Connection refused"
+    }
+  },
+  "errors": []
+}
+```
+
+## Environment configuration
+
+The bridge reads its configuration from environment variables (or a local `.env`). Copy `.env.sample` to `.env` and tweak as
+needed:
+
+- `GHIDRA_SERVER_URL` – Base URL of the Ghidra HTTP plugin (defaults to `http://127.0.0.1:8080/`).
+- `GHIDRA_MCP_ENABLE_WRITES` – Set to `true` to allow deterministic write operations; keep `false` unless audit logging is in
+  place.
+- `GHIDRA_MCP_MAX_WRITES_PER_REQUEST` – Safety limit for how many write operations a deterministic request may perform.
+- `GHIDRA_MCP_MAX_ITEMS_PER_BATCH` – Maximum number of items processed per deterministic batch.
+- `MCP_MAX_LINES_SOFT`, `MCP_MAX_ITEMS_SOFT`, `MCP_MAX_ITEMS_HARD` – Legacy bridge safeguards controlling response truncation.
+- `UPDATE_GOLDEN_SNAPSHOTS` – Enable (`1`) to refresh golden files while developing tests.
+
+## Running the test suite
+
+Install the development dependencies as shown above and execute:
+
+```bash
+pytest
+```
+
+The repository ships with contract, golden and unit tests covering the deterministic bridge paths. A clean checkout should pass
+all tests before you push or open a PR.
+
+## Contribution workflow (single-branch policy)
+
+Active work on the deterministic bridge follows a single feature branch strategy:
+
+- Branch: `feature/deterministic-bridge` (see `.github/pull_request_template.md` for the running checklist).
+- Task manifest: `.plan/tasks.manifest.json` enumerates the ordered backlog items.
+- Workspace lock: `.ci/AGENT_LOCK` prevents concurrent runs—refresh its JSON payload with your agent ID and expiry before
+  pushing changes.
+
+Always update the manifest and lock file as you progress so other agents can safely resume the same PR without drift.
+
 ## Building from source
 
 Populate the required Ghidra JARs (either manually or via `python scripts/fetch_ghidra_jars.py`) and run:

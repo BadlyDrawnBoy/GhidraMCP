@@ -5,6 +5,7 @@ import logging
 from functools import wraps
 from typing import Callable, Dict
 
+import httpx
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
@@ -44,6 +45,35 @@ def make_routes(
 ):
     logger = logging.getLogger("bridge.api")
     with_client = _with_client(client_factory, enable_writes=enable_writes)
+
+    async def health_route(request: Request):
+        request.state.enable_writes = enable_writes
+        client = client_factory()
+        try:
+            with request_scope(
+                "health",
+                logger=logger,
+                extra={"path": "/api/health.json"},
+            ):
+                upstream = {
+                    "base_url": client.base_url,
+                    "reachable": False,
+                }
+                try:
+                    response = client._session.get(client.base_url, timeout=2.0)
+                except httpx.HTTPError as exc:
+                    upstream["error"] = str(exc)
+                else:
+                    upstream["reachable"] = response.is_success
+                    upstream["status_code"] = response.status_code
+                payload = {
+                    "service": "ghidra-mcp-bridge",
+                    "writes_enabled": enable_writes,
+                    "ghidra": upstream,
+                }
+                return JSONResponse(envelope_ok(payload))
+        finally:
+            client.close()
 
     @with_client
     async def jt_slot_check_route(request: Request, client: GhidraClient):
@@ -223,6 +253,7 @@ def make_routes(
             return JSONResponse(response)
 
     return [
+        Route("/api/health.json", health_route, methods=["GET"]),
         Route("/api/jt_slot_check.json", jt_slot_check_route, methods=["POST"]),
         Route("/api/jt_slot_process.json", jt_slot_process_route, methods=["POST"]),
         Route("/api/jt_scan.json", jt_scan_route, methods=["POST"]),

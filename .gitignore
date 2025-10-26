@@ -44,6 +44,7 @@ mvnw.cmd
 # Environment files
 .env
 .env.*
+!.env.sample
 
 # Java crash logs (if any)
 hs_err_pid*
@@ -55,4 +56,5 @@ lib/*.jar
 # Python artifacts
 __pycache__/
 *.py[cod]
+.venv/
 

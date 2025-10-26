@@ -1,0 +1,19 @@
+# Ghidra MCP bridge workspace lock
+#
+# This file is created by automation before starting work on the bridge.
+# Populate it with a JSON document containing:
+#   {
+#     "owner": "agent-or-human-identifier",
+#     "branch": "feature/deterministic-bridge",
+#     "task": "BOOT-RUNTIME",
+#     "expires_at": "2025-01-01T12:00:00Z"
+#   }
+#
+# Agents must respect the following rules:
+# - If the file exists and `expires_at` is in the future, abort to avoid concurrent work.
+# - Update `task` as you progress through `.plan/tasks.manifest.json`.
+# - Refresh `expires_at` (ISO-8601 UTC) every time you push new commits.
+# - Delete the file only after the PR is merged or explicitly handed off.
+#
+# Keeping this file up to date prevents parallel runs from clobbering the single
+# deterministic bridge branch.

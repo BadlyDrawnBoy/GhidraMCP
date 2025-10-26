@@ -25,7 +25,7 @@ def register_tools(
     @server.tool()
     @tool_client
     def jt_slot_check(
-        client: GhidraClient,
+        client,
         jt_base: str,
         slot_index: int,
         code_min: str,
@@ -49,7 +49,7 @@ def register_tools(
     @server.tool()
     @tool_client
     def jt_slot_process(
-        client: GhidraClient,
+        client,
         jt_base: str,
         slot_index: int,
         code_min: str,
@@ -80,7 +80,7 @@ def register_tools(
     @server.tool()
     @tool_client
     def jt_scan(
-        client: GhidraClient,
+        client,
         jt_base: str,
         start: int,
         count: int,
@@ -106,7 +106,7 @@ def register_tools(
     @server.tool()
     @tool_client
     def string_xrefs_compact(
-        client: GhidraClient,
+        client,
         string_addr: str,
         limit: int = 50,
     ) -> Dict[str, object]:
@@ -123,7 +123,7 @@ def register_tools(
     @server.tool()
     @tool_client
     def mmio_annotate_compact(
-        client: GhidraClient,
+        client,
         function_addr: str,
         dry_run: bool = True,
         max_samples: int = 8,

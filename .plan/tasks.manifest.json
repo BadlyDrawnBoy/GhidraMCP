@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "sequence": [
+    {"id": "BOOT-RUNTIME", "title": "Agent bootstrap: runtime & entrypoint"},
+    {"id": "BOOT-ENV", "title": "Agent bootstrap: environment variables", "after": ["BOOT-RUNTIME"]},
+    {"id": "BOOT-HEALTH", "title": "Agent bootstrap: health & smoke checks", "after": ["BOOT-ENV"]},
+    {"id": "BOOT-TESTS", "title": "Agent bootstrap: test harness", "after": ["BOOT-HEALTH"]},
+    {"id": "BOOT-PR", "title": "Agent bootstrap: single-branch PR setup", "after": ["BOOT-TESTS"]}
+  ]
+}
