@@ -1,0 +1,149 @@
+{
+  "jt_scan": {
+    "data": {
+      "items": [
+        {
+          "errors": [],
+          "mode": "ARM",
+          "notes": [],
+          "raw": "0x00102004",
+          "slot": 0,
+          "slot_addr": "0x00100000",
+          "target": "0x00102004"
+        },
+        {
+          "errors": [],
+          "mode": "Thumb",
+          "notes": [],
+          "raw": "0x00102005",
+          "slot": 1,
+          "slot_addr": "0x00100004",
+          "target": "0x00102004"
+        }
+      ],
+      "range": {
+        "count": 2,
+        "start": 0
+      },
+      "summary": {
+        "invalid": 0,
+        "total": 2,
+        "valid": 2
+      }
+    },
+    "errors": [],
+    "ok": true
+  },
+  "jt_slot_check": {
+    "data": {
+      "errors": [],
+      "mode": "ARM",
+      "notes": [],
+      "raw": "0x00102004",
+      "slot": 0,
+      "slot_addr": "0x00100000",
+      "target": "0x00102004"
+    },
+    "errors": [],
+    "ok": true
+  },
+  "jt_slot_process_dry_run": {
+    "data": {
+      "errors": [],
+      "mode": "ARM",
+      "notes": [],
+      "raw": "0x00102004",
+      "slot": 0,
+      "slot_addr": "0x00100000",
+      "target": "0x00102004",
+      "verify": {
+        "comment_present": false,
+        "name": "sub_102004"
+      },
+      "writes": {
+        "comment_set": false,
+        "renamed": false
+      }
+    },
+    "errors": [],
+    "ok": true
+  },
+  "jt_slot_process_writes": {
+    "data": {
+      "errors": [],
+      "mode": "ARM",
+      "notes": [],
+      "raw": "0x00102004",
+      "slot": 0,
+      "slot_addr": "0x00100000",
+      "target": "0x00102004",
+      "verify": {
+        "comment_present": true,
+        "name": "slot_0_0x00102004"
+      },
+      "writes": {
+        "comment_set": true,
+        "renamed": true
+      }
+    },
+    "errors": [],
+    "ok": true
+  },
+  "mmio_annotate": {
+    "data": {
+      "annotated": 0,
+      "bitwise_and": 1,
+      "bitwise_or": 1,
+      "function": "0x00007000",
+      "reads": 1,
+      "samples": [
+        {
+          "addr": "0x00007000",
+          "op": "READ",
+          "target": "0x00000000"
+        },
+        {
+          "addr": "0x00007004",
+          "op": "WRITE",
+          "target": "0x00000004"
+        },
+        {
+          "addr": "0x00007008",
+          "op": "OR",
+          "target": "0x00000002"
+        },
+        {
+          "addr": "0x0000700c",
+          "op": "AND",
+          "target": "0xfffffffd"
+        }
+      ],
+      "toggles": 1,
+      "writes": 1
+    },
+    "errors": [],
+    "ok": true
+  },
+  "string_xrefs": {
+    "data": {
+      "callers": [
+        {
+          "addr": "0x00005000",
+          "arg_index": 0,
+          "context": "00005000: BL log_debug | 00005004: MOV R0, R1 | 0000500C: BL helper_printf",
+          "hint": "log_debug"
+        },
+        {
+          "addr": "0x00006000",
+          "arg_index": 0,
+          "context": "00006000: LDR R0, =0x00200000 | 00006004: MOV R1, R4 | 00006008: BL printf",
+          "hint": "printf"
+        }
+      ],
+      "count": 2,
+      "string": "0x00200000"
+    },
+    "errors": [],
+    "ok": true
+  }
+}
