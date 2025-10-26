@@ -90,9 +90,9 @@ All tools must return the shared envelope and validate against their JSON schema
 
 ### 5.3 MMIO (`features/mmio.py`)
 
-- `annotate` scans disassembly for read/write/toggle patterns and performs optional comment writes when `dry_run=False`.
+- `annotate` scans disassembly for read/write/toggle patterns, summarises bitwise operations, and performs optional comment writes when `dry_run=False` and `ENABLE_WRITES` permits writes.
 
-**Status:** Jump-table helpers are substantially implemented, including error codes and adapters. String helpers exist but still rely on simple pass-throughs for context. MMIO logic is currently a placeholder that returns deterministic zeroed fields without analysis, so further work is required to meet the plan.【F:bridge/features/mmio.py†L1-L30】
+**Status:** Jump-table and MMIO helpers now deliver the planned analysis. MMIO annotations classify reads/writes/toggles, capture bitwise summaries, and verify optional disassembly comments under the shared feature flag. String helpers still need richer caller context to meet the roadmap.【F:bridge/features/mmio.py†L18-L196】【F:tests/test_mmio.py†L1-L80】
 
 ---
 

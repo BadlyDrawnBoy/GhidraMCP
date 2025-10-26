@@ -8,6 +8,7 @@ from ..adapters import ArchAdapter
 from ..ghidra.client import GhidraClient
 from ..utils.errors import ErrorCode
 from ..utils.hex import int_to_hex, slot_address
+from . import mmio
 
 
 @dataclass(slots=True)
@@ -40,7 +41,7 @@ class JTProcessResult(JTSlotResult):
     comment_present: bool
 
     def to_dict(self) -> Dict[str, object]:
-        payload = super().to_dict()
+        payload = JTSlotResult.to_dict(self)
         payload.update(
             {
                 "writes": {"renamed": self.renamed, "comment_set": self.comment_set},
@@ -129,6 +130,9 @@ def slot_process(
     if dry_run:
         meta = client.get_function_by_address(target_int)
         result.verify_name = meta.get("name") if meta else None
+        return result.to_dict()
+    if not mmio.ENABLE_WRITES:
+        result.errors.append(ErrorCode.WRITE_DISABLED_DRY_RUN.value)
         return result.to_dict()
     try:
         new_name = rename_pattern.format(slot=result.slot, target=result.target)
