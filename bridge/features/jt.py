@@ -9,6 +9,7 @@ from ..ghidra.client import GhidraClient
 from ..utils.config import ENABLE_WRITES
 from ..utils.errors import ErrorCode
 from ..utils.hex import int_to_hex, slot_address
+from ..utils.logging import enforce_batch_limit, increment_counter, record_write_attempt
 
 
 @dataclass(slots=True)
@@ -60,6 +61,7 @@ def slot_check(
     code_max: int,
     adapter: ArchAdapter,
 ) -> Dict[str, object]:
+    increment_counter("jt.slot_check.calls")
     addr = slot_address(jt_base, slot_index)
     raw_val = client.read_dword(addr)
     result = JTSlotResult(
@@ -102,6 +104,7 @@ def slot_process(
     dry_run: bool = True,
     writes_enabled: bool = ENABLE_WRITES,
 ) -> Dict[str, object]:
+    increment_counter("jt.slot_process.calls")
     check = slot_check(
         client,
         jt_base=jt_base,
@@ -140,10 +143,12 @@ def slot_process(
     except KeyError as exc:
         result.errors.append(f"FORMAT_ERROR:{exc}")
         return result.to_dict()
+    record_write_attempt()
     if client.rename_function(target_int, new_name):
         result.renamed = True
     else:
         result.errors.append(ErrorCode.WRITE_VERIFY_FAILED.value)
+    record_write_attempt()
     if client.set_decompiler_comment(target_int, comment):
         result.comment_set = True
     else:
@@ -167,6 +172,8 @@ def scan(
     code_max: int,
     adapter: ArchAdapter,
 ) -> Dict[str, object]:
+    increment_counter("jt.scan.calls")
+    enforce_batch_limit(count, counter="jt.scan.count")
     items: List[Dict[str, object]] = []
     valid = invalid = 0
     for offset in range(start, start + count):
@@ -184,6 +191,7 @@ def scan(
         else:
             valid += 1
     summary = {"total": len(items), "valid": valid, "invalid": invalid}
+    increment_counter("jt.scan.total_slots", len(items))
     return {
         "range": {"start": start, "count": count},
         "summary": summary,

@@ -9,6 +9,7 @@ from ..ghidra.client import GhidraClient
 from ..utils.config import ENABLE_WRITES
 from ..utils.errors import ErrorCode
 from ..utils.hex import int_to_hex
+from ..utils.logging import enforce_batch_limit, increment_counter, record_write_attempt
 
 
 class WritesDisabledError(RuntimeError):
@@ -99,9 +100,11 @@ def annotate(
     max_samples: int = 8,
     writes_enabled: bool = ENABLE_WRITES,
 ) -> Dict[str, object]:
+    increment_counter("mmio.annotate.calls")
     if not dry_run and not writes_enabled:
         raise WritesDisabledError(ErrorCode.WRITE_DISABLED_DRY_RUN.value)
 
+    enforce_batch_limit(max_samples, counter="mmio.max_samples")
     disassembly = client.disassemble_function(function_addr)
     operations = _collect_operations(disassembly)
 
@@ -112,11 +115,14 @@ def annotate(
     toggles = sum(1 for op in operations if op.op == "TOGGLE")
 
     samples = [op.to_sample() for op in operations[:max_samples]]
+    increment_counter("mmio.operations.total", len(operations))
+    increment_counter("mmio.samples.returned", len(samples))
 
     annotated = 0
     if not dry_run and writes_enabled and samples:
         for op in operations[:max_samples]:
             comment = _format_comment(op)
+            record_write_attempt()
             if client.set_disassembly_comment(op.addr, comment):
                 annotated += 1
 

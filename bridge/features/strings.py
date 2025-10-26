@@ -6,6 +6,7 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from ..ghidra.client import GhidraClient
 from ..utils.hex import int_to_hex
+from ..utils.logging import enforce_batch_limit, increment_counter
 
 
 _REGISTER_ARG_ORDER = {
@@ -148,6 +149,8 @@ def _extract_context(
 
 
 def xrefs_compact(client: GhidraClient, *, string_addr: int, limit: int = 50) -> Dict[str, object]:
+    increment_counter("strings.xrefs.calls")
+    enforce_batch_limit(limit, counter="strings.xrefs.limit")
     refs = client.get_xrefs_to(string_addr, limit=limit)
     callers: List[Dict[str, object]] = []
     for ref in refs[:limit]:
@@ -166,6 +169,7 @@ def xrefs_compact(client: GhidraClient, *, string_addr: int, limit: int = 50) ->
         if hint:
             entry["hint"] = hint
         callers.append(entry)
+        increment_counter("strings.xrefs.callers")
     return {"string": int_to_hex(string_addr), "count": len(callers), "callers": callers}
 
 
