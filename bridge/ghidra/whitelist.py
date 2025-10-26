@@ -2,36 +2,36 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Iterable
+from typing import Dict, Iterable, Tuple
 
 
 @dataclass(frozen=True)
 class WhitelistEntry:
+    """Represents a logical operation and the aliases it may resolve to."""
+
     method: str
-    path: str
+    key: str
+    aliases: Tuple[str, ...]
+
+    def allows(self, path: str) -> bool:
+        """Return ``True`` when ``path`` is one of the whitelisted aliases."""
+
+        return path in self.aliases
 
 
 DEFAULT_WHITELIST: Dict[str, Iterable[WhitelistEntry]] = {
     "GET": (
-        WhitelistEntry("GET", "read_dword"),
-        WhitelistEntry("GET", "decompileByAddress"),
-        WhitelistEntry("GET", "decompile_by_addr"),
-        WhitelistEntry("GET", "disassemble"),
-        WhitelistEntry("GET", "disassemble_function"),
-        WhitelistEntry("GET", "disasmByAddr"),
-        WhitelistEntry("GET", "function_by_addr"),
-        WhitelistEntry("GET", "get_function_by_address"),
-        WhitelistEntry("GET", "functionMeta"),
-        WhitelistEntry("GET", "functions"),
-        WhitelistEntry("GET", "list_functions"),
-        WhitelistEntry("GET", "strings"),
-        WhitelistEntry("GET", "list_strings"),
-        WhitelistEntry("GET", "xrefs_to"),
-        WhitelistEntry("GET", "get_xrefs_to"),
+        WhitelistEntry("GET", "READ_DWORD", ("read_dword",)),
+        WhitelistEntry("GET", "DECOMPILE_BY_ADDR", ("decompile_by_addr", "decompileByAddress")),
+        WhitelistEntry("GET", "DISASSEMBLE", ("disassemble", "disassemble_function", "disasmByAddr")),
+        WhitelistEntry("GET", "FUNC_BY_ADDR", ("function_by_addr", "get_function_by_address", "functionMeta")),
+        WhitelistEntry("GET", "LIST_FUNCTIONS", ("functions", "list_functions")),
+        WhitelistEntry("GET", "LIST_STRINGS", ("strings", "list_strings")),
+        WhitelistEntry("GET", "GET_XREFS_TO", ("get_xrefs_to", "xrefs_to")),
     ),
     "POST": (
-        WhitelistEntry("POST", "rename_function_by_address"),
-        WhitelistEntry("POST", "set_decompiler_comment"),
-        WhitelistEntry("POST", "set_disassembly_comment"),
+        WhitelistEntry("POST", "RENAME_FUNCTION", ("rename_function_by_address",)),
+        WhitelistEntry("POST", "SET_DECOMPILER_COMMENT", ("set_decompiler_comment",)),
+        WhitelistEntry("POST", "SET_DISASSEMBLY_COMMENT", ("set_disassembly_comment",)),
     ),
 }
