@@ -152,6 +152,25 @@ def test_jt_slot_check_contract(contract_client: TestClient) -> None:
     _assert_valid("jt_slot_check.v1.json", body["data"])
 
 
+def test_jt_slot_check_rejects_upper_bound(contract_client: TestClient) -> None:
+    response = contract_client.post(
+        "/api/jt_slot_check.json",
+        json={
+            "jt_base": "0x00100000",
+            "slot_index": 1,
+            "code_min": "0x00100000",
+            "code_max": "0x0010FFFF",
+            "arch": "arm",
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ok"] is True
+    _assert_envelope(body)
+    _assert_valid("jt_slot_check.v1.json", body["data"])
+    assert body["data"]["errors"] == ["OUT_OF_RANGE"]
+
+
 def test_jt_slot_process_contract(contract_client: TestClient) -> None:
     response = contract_client.post(
         "/api/jt_slot_process.json",

@@ -86,6 +86,14 @@ def test_jt_slot_check_cases(snapshot_store: SnapshotStore) -> None:
         ),
     )
     snapshot_store.assert_match(
+        "upper_bound_out_of_range",
+        _slot_check(
+            client=StubClient(read_result=0x401000),
+            adapter=StubAdapter(),
+            slot_index=4,
+        ),
+    )
+    snapshot_store.assert_match(
         "arm_valid",
         _slot_check(
             client=StubClient(read_result=0x400208),

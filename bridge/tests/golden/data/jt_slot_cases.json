@@ -30,6 +30,17 @@
     "slot_addr": "0x00400004",
     "target": null
   },
+  "upper_bound_out_of_range": {
+    "errors": [
+      "OUT_OF_RANGE"
+    ],
+    "mode": "none",
+    "notes": [],
+    "raw": "0x00401000",
+    "slot": 4,
+    "slot_addr": "0x00400010",
+    "target": null
+  },
   "thumb_valid": {
     "errors": [],
     "mode": "Thumb",
