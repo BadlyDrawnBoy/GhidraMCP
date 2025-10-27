@@ -13,7 +13,7 @@
    (example: `JT-VERIFY: verify ARM/Thumb targets via get_function_by_address`)
 6. Update this file:
    - change ⬜️ → ✅ (or ⛔ with reason)
-   - append the short commit SHA on the DoD line (e.g., `_commit: abc1234_`)
+   - append the short commit SHA on the DoD line (e.g., `_commit: 796e00d_`)
    - add a 1–3 line “What changed” note under the task (very brief)
 7. Output a **final report** (in your chat reply) with:
    - task id, commit SHA, touched files, and a 1–3 line summary
@@ -22,14 +22,16 @@
 
 ---
 
-### 1) ⬜️ API-MOUNT — Mount deterministic routes & register MCP tools (ID: API-MOUNT)
+### 1) ✅ API-MOUNT — Mount deterministic routes & register MCP tools (ID: API-MOUNT)
 - Mount HTTP: `/api/jt_slot_check.json`, `/api/jt_slot_process.json`,
   `/api/jt_scan.json`, `/api/string_xrefs.json`, `/api/mmio_annotate.json`
 - Register tools: `jt_slot_check`, `jt_slot_process`, `jt_scan`,
   `string_xrefs_compact`, `mmio_annotate_compact`
 - Ensure **one** canonical entrypoint (guard/remove duplicate `main()` paths)
-- **DoD:** `GET /openapi.json` 200; `POST /api/jt_slot_check.json` returns a valid envelope JSON  
-  _commit:_
+- **DoD:** `GET /openapi.json` 200; `POST /api/jt_slot_check.json` returns a valid envelope JSON
+  _commit: 78e230d
+  - What changed: Added integration tests confirming OpenAPI availability and jt_slot_check envelope handling.
+  - What changed: Verified MCP tool registration matches the required deterministic tool list.
 
 ### 2) ⬜️ CLIENT-UNIFY — Single Ghidra client + whitelist (ID: CLIENT-UNIFY)
 - One client module; **POST alias resolver** mirrors GET; cache aliases
