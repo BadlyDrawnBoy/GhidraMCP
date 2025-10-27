@@ -1,19 +1,24 @@
-# MCP Bridge — LIVE To-Do / Task List
-> Source of truth for Codex. On each session, Codex MUST read this list,
-> pick the first ⬜️ item, complete it, run tests, commit, and **update this file**
-> (checkbox + short note with commit SHA).
+> **Codex – Session Protocol (read this first, every time)**
+>
+> This file is the **single source of truth**. Work one task per run.
 
-**Status legend:** ⬜️ todo · 🟨 in-progress · ✅ done · ⛔ blocked
+**How to proceed**
 
-## How Codex uses this list
-1. Use the current repo state (no assumptions from previous chats).
-2. Take the first **⬜️ todo** item.
-3. Implement it, run tests locally, make **one atomic commit**:
-   - Commit message prefix: `<ID>: <summary>`
-4. Update this file:
-   - Change ⬜️ → ✅ (or ⛔ with a one-line reason)
-   - Append the short commit SHA after the DoD line.
-5. Stop. I will handle the PR/merge. Next session starts again from this file.
+1. Read this `/.plan/TODO.md`. If `/.plan/tasks.manifest.json` exists, respect its `sequence`/`after` order; otherwise use the order here.
+2. Pick the **first** item marked ⬜️ (todo). If it is already satisfied by the current code, mark ✅ with a one-line note and continue to the next run.
+3. Implement **only** what this task’s DoD requires. Keep it **non-breaking**. Avoid repo-wide refactors unless the task explicitly says so.
+4. Run tests locally (e.g., `pytest -q`). If tests fail and you cannot fix without scope creep, **stop**: set the task to ⛔ and add a one-line reason.
+5. Make **one atomic commit** with message:  
+   `TASK_ID: short summary`  
+   (example: `JT-VERIFY: verify ARM/Thumb targets via get_function_by_address`)
+6. Update this file:
+   - change ⬜️ → ✅ (or ⛔ with reason)
+   - append the short commit SHA on the DoD line (e.g., `_commit: abc1234_`)
+   - add a 1–3 line “What changed” note under the task (very brief)
+7. Output a **final report** (in your chat reply) with:
+   - task id, commit SHA, touched files, and a 1–3 line summary
+   - how to run the relevant tests (commands)
+8. **Do not**: reformat the whole repo, or modify other tasks. One task per run, then stop.
 
 ---
 
