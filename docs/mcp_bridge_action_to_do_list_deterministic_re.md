@@ -106,9 +106,9 @@
 
 ## 5) Observability & limits
 
-15. ⬜️ ``** everywhere** (MCP tools & HTTP)
+15. ✅ **Structured request metrics everywhere** (MCP tools & HTTP)
     - Timings (read/disasm/verify), rate‑limit, MaxWrites=2, MaxItems=256
-    - **DoD:** Structured logs with `request_id` + counters; visible in smoke test.
+    - ✅ Request scopes now wrap every HTTP route and MCP tool, logging per-request timers and counters with a shared `request_id`; `GhidraClient` records read/disasm/verify counters with new unit coverage and the defaults enforce MaxWrites=2/MaxItems=256.
 16. ⬜️ **Write audit log**
     - old→new name, comment diff, verify result
     - **DoD:** One audit entry per successful write.

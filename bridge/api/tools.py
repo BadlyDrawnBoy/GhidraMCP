@@ -1,6 +1,7 @@
 """MCP tool surface for the deterministic bridge endpoints."""
 from __future__ import annotations
 
+import logging
 from typing import Callable, Dict
 
 from mcp.server.fastmcp import FastMCP
@@ -22,6 +23,7 @@ def register_tools(
     enable_writes: bool = ENABLE_WRITES,
 ) -> None:
     tool_client = with_client(client_factory)
+    logger = logging.getLogger("bridge.mcp.tools")
 
     @server.tool()
     @tool_client
@@ -34,14 +36,19 @@ def register_tools(
         arch: str = "auto",
     ) -> Dict[str, object]:
         adapter = adapter_for_arch(arch)
-        data = jt.slot_check(
-            client,
-            jt_base=parse_hex(jt_base),
-            slot_index=slot_index,
-            code_min=parse_hex(code_min),
-            code_max=parse_hex(code_max),
-            adapter=adapter,
-        )
+        with request_scope(
+            "jt_slot_check",
+            logger=logger,
+            extra={"tool": "jt_slot_check"},
+        ):
+            data = jt.slot_check(
+                client,
+                jt_base=parse_hex(jt_base),
+                slot_index=slot_index,
+                code_min=parse_hex(code_min),
+                code_max=parse_hex(code_max),
+                adapter=adapter,
+            )
         valid, errors = validate_payload("jt_slot_check.v1.json", data)
         if not valid:
             return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
@@ -64,6 +71,7 @@ def register_tools(
         try:
             with request_scope(
                 "jt_slot_process",
+                logger=logger,
                 extra={"tool": "jt_slot_process"},
                 max_writes=2,
             ):
@@ -98,15 +106,20 @@ def register_tools(
         arch: str = "auto",
     ) -> Dict[str, object]:
         adapter = adapter_for_arch(arch)
-        data = jt.scan(
-            client,
-            jt_base=parse_hex(jt_base),
-            start=start,
-            count=count,
-            code_min=parse_hex(code_min),
-            code_max=parse_hex(code_max),
-            adapter=adapter,
-        )
+        with request_scope(
+            "jt_scan",
+            logger=logger,
+            extra={"tool": "jt_scan"},
+        ):
+            data = jt.scan(
+                client,
+                jt_base=parse_hex(jt_base),
+                start=start,
+                count=count,
+                code_min=parse_hex(code_min),
+                code_max=parse_hex(code_max),
+                adapter=adapter,
+            )
         valid, errors = validate_payload("jt_scan.v1.json", data)
         if not valid:
             return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
@@ -119,11 +132,16 @@ def register_tools(
         string_addr: str,
         limit: int = 50,
     ) -> Dict[str, object]:
-        data = strings.xrefs_compact(
-            client,
-            string_addr=parse_hex(string_addr),
-            limit=limit,
-        )
+        with request_scope(
+            "string_xrefs",
+            logger=logger,
+            extra={"tool": "string_xrefs_compact"},
+        ):
+            data = strings.xrefs_compact(
+                client,
+                string_addr=parse_hex(string_addr),
+                limit=limit,
+            )
         valid, errors = validate_payload("string_xrefs.v1.json", data)
         if not valid:
             return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
@@ -138,13 +156,18 @@ def register_tools(
         max_samples: int = 8,
     ) -> Dict[str, object]:
         try:
-            data = mmio.annotate(
-                client,
-                function_addr=parse_hex(function_addr),
-                dry_run=dry_run,
-                max_samples=max_samples,
-                writes_enabled=enable_writes,
-            )
+            with request_scope(
+                "mmio_annotate",
+                logger=logger,
+                extra={"tool": "mmio_annotate_compact"},
+            ):
+                data = mmio.annotate(
+                    client,
+                    function_addr=parse_hex(function_addr),
+                    dry_run=dry_run,
+                    max_samples=max_samples,
+                    writes_enabled=enable_writes,
+                )
         except mmio.WritesDisabledError:
             return envelope_error(
                 ErrorCode.WRITE_DISABLED_DRY_RUN,

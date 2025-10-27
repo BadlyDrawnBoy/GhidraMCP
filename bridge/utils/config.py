@@ -30,8 +30,8 @@ def _env_int(name: str, *, default: int) -> int:
 
 
 ENABLE_WRITES: Final[bool] = _env_bool("GHIDRA_MCP_ENABLE_WRITES", default=False)
-MAX_WRITES_PER_REQUEST: Final[int] = _env_int("GHIDRA_MCP_MAX_WRITES_PER_REQUEST", default=32)
-MAX_ITEMS_PER_BATCH: Final[int] = _env_int("GHIDRA_MCP_MAX_ITEMS_PER_BATCH", default=512)
+MAX_WRITES_PER_REQUEST: Final[int] = _env_int("GHIDRA_MCP_MAX_WRITES_PER_REQUEST", default=2)
+MAX_ITEMS_PER_BATCH: Final[int] = _env_int("GHIDRA_MCP_MAX_ITEMS_PER_BATCH", default=256)
 
 
 __all__ = ["ENABLE_WRITES", "MAX_WRITES_PER_REQUEST", "MAX_ITEMS_PER_BATCH"]

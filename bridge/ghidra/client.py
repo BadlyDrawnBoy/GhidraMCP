@@ -10,6 +10,7 @@ import httpx
 
 from .models import FunctionMeta, Xref
 from .whitelist import DEFAULT_WHITELIST, WhitelistEntry
+from ..utils.logging import current_request, increment_counter, scoped_timer
 
 logger = logging.getLogger("ghidra.bridge.client")
 
@@ -159,10 +160,21 @@ class GhidraClient:
             )
             return [f"ERROR: endpoint {method} {path} not allowed"]
         url = urljoin(self.base_url, path)
-        try:
-            response = self._session.request(method, url, params=params, data=data)
-        except httpx.HTTPError as exc:  # pragma: no cover - transport errors are environment specific
-            return [f"ERROR: Request failed: {exc}"]
+        context = current_request()
+        timer_extra: Dict[str, Any]
+        if context is not None:
+            timer_extra = context.extra(
+                event="timer",
+                operation=f"ghidra.{method.lower()}",
+                path=path,
+            )
+        else:  # pragma: no cover - request scope always set in integration tests
+            timer_extra = {"event": "timer", "operation": f"ghidra.{method.lower()}", "path": path}
+        with scoped_timer(logger, f"ghidra.{method.lower()}", extra=timer_extra):
+            try:
+                response = self._session.request(method, url, params=params, data=data)
+            except httpx.HTTPError as exc:  # pragma: no cover - transport errors are environment specific
+                return [f"ERROR: Request failed: {exc}"]
         if response.is_error:
             return [f"ERROR: {response.status_code}: {response.text.strip()}"]
         text = response.text
@@ -174,6 +186,7 @@ class GhidraClient:
     # ------------------------------------------------------------------
 
     def read_dword(self, address: int) -> Optional[int]:
+        increment_counter("ghidra.read")
         result = self._request_lines(
             "GET",
             "read_dword",
@@ -191,6 +204,7 @@ class GhidraClient:
             return None
 
     def disassemble_function(self, address: int) -> List[str]:
+        increment_counter("ghidra.disasm")
         requester = EndpointRequester(
             self,
             "GET",
@@ -201,6 +215,7 @@ class GhidraClient:
         return [] if _is_error(lines) else lines
 
     def get_function_by_address(self, address: int) -> Optional[FunctionMeta]:
+        increment_counter("ghidra.verify")
         requester = EndpointRequester(
             self,
             "GET",
@@ -232,6 +247,7 @@ class GhidraClient:
         return meta if meta else None
 
     def get_xrefs_to(self, address: int, *, limit: int = 50) -> List[Xref]:
+        increment_counter("ghidra.xrefs")
         requester = EndpointRequester(
             self,
             "GET",
@@ -256,6 +272,7 @@ class GhidraClient:
         return out
 
     def rename_function(self, address: int, new_name: str) -> bool:
+        increment_counter("ghidra.rename")
         requester = EndpointRequester(
             self,
             "POST",
@@ -266,6 +283,7 @@ class GhidraClient:
         return not _is_error(response)
 
     def set_decompiler_comment(self, address: int, comment: str) -> bool:
+        increment_counter("ghidra.decompiler_comment")
         requester = EndpointRequester(
             self,
             "POST",
@@ -276,6 +294,7 @@ class GhidraClient:
         return not _is_error(response)
 
     def set_disassembly_comment(self, address: int, comment: str) -> bool:
+        increment_counter("ghidra.disassembly_comment")
         requester = EndpointRequester(
             self,
             "POST",
