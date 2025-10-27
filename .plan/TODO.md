@@ -43,10 +43,10 @@
   - What changed: Added unit tests covering cached alias resolution for both GET and POST helpers.
   - What changed: Confirmed whitelist blocks forbidden endpoints via defined error responses.
 
-### 3) ⬜️ RANGE-CONTRACT — Enforce `[code_min, code_max)` (ID: RANGE-CONTRACT)
+### 3) ✅ RANGE-CONTRACT — Enforce `[code_min, code_max)` (ID: RANGE-CONTRACT)
 - Adapter uses `< code_max`; docs/tests updated
-- **DoD:** Off-by-one at the upper bound covered by tests  
-  _commit:_
+- **DoD:** Off-by-one at the upper bound covered by tests _commit: 6be4e76_
+  - What changed: Added unit, contract, and golden coverage for jump-table slots equal to `code_max`.
 
 ### 4) ⬜️ JT-VERIFY — Strict ARM/Thumb READ→VERIFY (ID: JT-VERIFY)
 - Probe ARM at `ptr` and Thumb at `ptr-1` only if in range

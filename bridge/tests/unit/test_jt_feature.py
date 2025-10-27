@@ -122,6 +122,29 @@ def test_slot_check_rejects_upper_bound_value() -> None:
     assert result["errors"] == ["OUT_OF_RANGE"]
 
 
+def test_slot_process_rejects_upper_bound_value() -> None:
+    client = StubClient(read_result=0x410000)
+    adapter = StubAdapter()
+
+    result = jt.slot_process(
+        client,
+        jt_base=0x400000,
+        slot_index=4,
+        code_min=0x400000,
+        code_max=0x410000,
+        rename_pattern="new_{slot}",
+        comment="note",
+        adapter=adapter,
+        dry_run=True,
+        writes_enabled=False,
+    )
+
+    assert result["errors"] == ["OUT_OF_RANGE"]
+    assert result["writes"] == {"renamed": False, "comment_set": False}
+    assert client.rename_calls == []
+    assert client.comment_calls == []
+
+
 def test_slot_check_detects_instruction_sentinel() -> None:
     client = StubClient(read_result=0x400123)
     adapter = StubAdapter(sentinel=True)
