@@ -15,7 +15,6 @@ logger = logging.getLogger("ghidra.bridge.client")
 
 
 ENDPOINT_CANDIDATES: Mapping[str, Iterable[str]] = {
-    "DECOMPILE_BY_ADDR": ("decompile_by_addr", "decompileByAddress"),
     "DISASSEMBLE": ("disassemble", "disassemble_function", "disasmByAddr"),
     "FUNC_BY_ADDR": ("function_by_addr", "get_function_by_address", "functionMeta"),
     "GET_XREFS_TO": ("get_xrefs_to", "xrefs_to"),
@@ -91,6 +90,20 @@ def _is_error(lines: List[str]) -> bool:
     return bool(lines) and lines[0].startswith("ERROR:")
 
 
+def _has_confirm_true(
+    params: Optional[Mapping[str, Any]], data: Optional[Mapping[str, Any]]
+) -> bool:
+    def _matches(mapping: Optional[Mapping[str, Any]]) -> bool:
+        if not mapping:
+            return False
+        for key, value in mapping.items():
+            if key.lower() == "confirm" and str(value).lower() in {"true", "1", "yes"}:
+                return True
+        return False
+
+    return _matches(params) or _matches(data)
+
+
 class GhidraClient:
     """Small wrapper that handles whitelist enforcement and alias resolution."""
 
@@ -137,6 +150,13 @@ class GhidraClient:
     ) -> List[str]:
         if not self._is_allowed(method, key=key, path=path):
             logger.error("Attempted to call non-whitelisted endpoint %s %s", method, path)
+            return [f"ERROR: endpoint {method} {path} not allowed"]
+        if _has_confirm_true(params=params, data=data):
+            logger.error(
+                "Attempted to call endpoint %s %s with confirm=true, blocking for safety",
+                method,
+                path,
+            )
             return [f"ERROR: endpoint {method} {path} not allowed"]
         url = urljoin(self.base_url, path)
         try:
