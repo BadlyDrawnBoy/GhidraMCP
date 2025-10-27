@@ -59,18 +59,22 @@
 
 ## 2) JT path (READ→VERIFY)
 
-7. ⬜️ **Tighten ARM/Thumb adapter** (READ→VERIFY)
+7. ✅ **Tighten ARM/Thumb adapter** (READ→VERIFY)
    - `probe_function(ptr)` → disassemble + optionally `ptr-1` (Thumb)
    - Always **verify** via `get_function_by_address`/disasm before marking as valid
    - **DoD:** Unit tests: instruction word → `ARM_INSTRUCTION`; out‑of‑range → error; valid start → ARM/Thumb correct.
-8. ⬜️ **Unify range contract** (`[code_min, code_max)`)
+   - ✅ `bridge/adapters/arm_thumb.py` verifies ARM + Thumb entry points and refuses mismatched metadata; `bridge/tests/unit/test_jt_adapter.py` covers sentinel, out-of-range, and valid start cases end-to-end.
+8. ✅ **Unify range contract** (`[code_min, code_max)`)
    - **DoD:** Code + docs + tests consistent; off‑by‑one cases covered.
-9. ⬜️ ``** write→verify**
+   - ✅ Range guards live in `bridge/adapters/arm_thumb.py`/`jt.slot_check`; README documents the half-open contract and `bridge/tests/unit/test_jt_adapter.py::test_slot_check_enforces_half_open_upper_bound` exercises the boundary.
+9. ✅ ``** write→verify**
    - Write only on definite function start; max 2 writes; verify after
    - **DoD:** Unit & contract tests green; writes appear in audit log.
-10. ⬜️ **Batch **``
+   - ✅ `bridge/api/routes.py` & `bridge/api/tools.py` run `jt_slot_process` inside a `request_scope` capped at two writes, and `bridge/tests/unit/test_jt_feature.py::test_slot_process_aborts_when_write_limit_exceeded` proves the limit while still verifying rename results.
+10. ✅ **Batch **``
     - Sequential `slot_check`; `summary.total == items.length`
     - **DoD:** Contract test with 16 slots incl. mixed cases.
+    - ✅ `bridge/features/jt.scan` streams sequential slot checks and `bridge/tests/contract/test_http_contracts.py::test_jt_scan_contract` locks the 16-slot summary/invalid counts.
 
 ---
 

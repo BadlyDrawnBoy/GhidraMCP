@@ -4,8 +4,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
+import pytest
+
 from bridge.features import jt
-from bridge.utils.logging import request_scope
+from bridge.utils.logging import SafetyLimitExceeded, request_scope
 
 
 @dataclass
@@ -213,6 +215,33 @@ def test_slot_process_records_write_counter() -> None:
 
     assert result["errors"] == []
     assert ctx.counters.get("writes") == 2
+
+
+def test_slot_process_aborts_when_write_limit_exceeded() -> None:
+    client = StubClient(
+        read_result=0x400200,
+        metadata=[{"name": "orig"}, {"name": "orig"}],
+    )
+    adapter = StubAdapter(mode="ARM", target=0x400200)
+
+    with pytest.raises(SafetyLimitExceeded):
+        with request_scope("jt_slot_process", max_writes=1):
+            jt.slot_process(
+                client,
+                jt_base=0x400000,
+                slot_index=11,
+                code_min=0x400000,
+                code_max=0x500000,
+                rename_pattern="new_{slot}",
+                comment="note",
+                adapter=adapter,
+                dry_run=False,
+                writes_enabled=True,
+            )
+
+    assert client.rename_calls == [(0x400200, "new_11")]
+    assert client.comment_calls == []
+    assert client.meta_calls == [0x400200]
 
 
 def test_slot_process_aborts_when_pre_verify_missing() -> None:
