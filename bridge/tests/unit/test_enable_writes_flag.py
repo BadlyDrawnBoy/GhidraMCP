@@ -6,13 +6,13 @@ from bridge.utils.errors import ErrorCode
 
 class DummyAdapter:
     def in_code_range(self, ptr: int, code_min: int, code_max: int) -> bool:
-        return code_min <= ptr <= code_max
+        return code_min <= ptr < code_max
 
     def is_instruction_sentinel(self, raw: int) -> bool:
         return False
 
-    def probe_function(self, ptr: int):
-        return "thumb", ptr
+    def probe_function(self, client, ptr: int):
+        return "Thumb", ptr
 
 
 class DummyJTClient:

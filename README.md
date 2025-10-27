@@ -23,6 +23,19 @@ Because the refactor is still underway, you will find both the legacy `bridge_mc
 * List methods, classes, imports, exports, strings, and more.
 * Experimental deterministic endpoints for jump tables, string xrefs, and MMIO helpers (still evolving).
 
+### Deterministic jump table helpers
+
+Jump-table specific requests (`jt_slot_check`, `jt_slot_process`, `jt_scan`) use a half-open range for code pointers:
+`code_min` is inclusive while `code_max` is exclusive (`[code_min, code_max)`). Any pointer that equals or exceeds
+`code_max` is rejected as out of range to avoid off-by-one spills into the next region.
+
+`jt_slot_process` performs at most two write operations (rename + comment) and only after the candidate address is
+re-confirmed as a valid ARM/Thumb function start. A second metadata fetch verifies the rename/comment before the
+response is returned.
+
+`jt_scan` walks slots sequentially and the returned summary always reports `total == len(items)` with separate
+valid/invalid counters for deterministic auditing.
+
 ## Installation quick start
 
 1. Install [Ghidra](https://ghidra-sre.org/) and the MCP [Python SDK](https://github.com/modelcontextprotocol/python-sdk).
