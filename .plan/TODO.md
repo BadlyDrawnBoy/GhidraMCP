@@ -58,11 +58,10 @@
   - What changed: Tightened ARM/Thumb probing to respect range checks and require verified metadata for Thumb fallbacks.
   - What changed: Updated adapter verification logic and tests to accept either disassembly or metadata while enforcing entry points.
 
-### 5) ⬜️ JT-SCAN — Read-only batch scan (ID: JT-SCAN)
+### 5) ✅ JT-SCAN — Read-only batch scan (ID: JT-SCAN)
 - Implement `jt_scan` aggregating `slot_check`; correct `summary.total == items.length`
-- **DoD:** Contract test with 16 mixed slots passes  
-  _commit:_
-
+- **DoD:** Contract test with 16 mixed slots passes _commit: ae8871f_
+  - What changed: Confirmed batch `jt_scan` reuses slot checks and reports accurate summary counts for 16-slot contract data.
 ### 6) ⬜️ MMIO-HEUR — Precise MMIO heuristics (ID: MMIO-HEUR)
 - Count only `LDR`/`STR`; exclude `LDM/STM`
 - Extract targets from `[#imm]` or `=imm`; ignore unrelated immediates
