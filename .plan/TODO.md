@@ -22,90 +22,88 @@
 
 ---
 
-### 1) ✅ API-MOUNT — Mount deterministic routes & register MCP tools (ID: API-MOUNT)
-- Mount HTTP: `/api/jt_slot_check.json`, `/api/jt_slot_process.json`,
-  `/api/jt_scan.json`, `/api/string_xrefs.json`, `/api/mmio_annotate.json`
-- Register tools: `jt_slot_check`, `jt_slot_process`, `jt_scan`,
-  `string_xrefs_compact`, `mmio_annotate_compact`
-- Ensure **one** canonical entrypoint (guard/remove duplicate `main()` paths)
-- **DoD:** `GET /openapi.json` 200; `POST /api/jt_slot_check.json` returns a valid envelope JSON
-  _commit: 78e230d
-  - What changed: Added integration tests confirming OpenAPI availability and jt_slot_check envelope handling.
-  - What changed: Verified MCP tool registration matches the required deterministic tool list.
+### 0) ☑ SYNC-STATE — Keep plan files in lockstep (ID: SYNC-STATE)
 
-### 2) ✅ CLIENT-UNIFY — Single Ghidra client + whitelist (ID: CLIENT-UNIFY)
-- One client module; **POST alias resolver** mirrors GET; cache aliases
-- Enforce whitelist: **allowed** `read_dword`, `disassemble_function`,
-  `get_function_by_address`, `get_xrefs_to`, `rename_function_by_address`, `set_*comment`
-  · **forbidden** `read_bytes`, `read_cstring`, any `list_*`, any `search_*`, any `confirm:true`
-- **DoD:** Unit tests show allowed pass, forbidden return a defined error
-  _commit: 041845c_
-  - What changed: Added unit tests covering cached alias resolution for both GET and POST helpers.
-  - What changed: Confirmed whitelist blocks forbidden endpoints via defined error responses.
+* Mirror task status & short SHA from `/.plan/TODO.md` → `/.plan/state.json`.
+* Add a tiny check in tests (or a pre-commit) that fails on mismatch.
+* **DoD:** `python -m pytest -q tests/plan/test_state_sync.py` green.
+
+### 1) ✅ API-MOUNT — Deterministic routes & MCP tools (ID: API-MOUNT)
+
+* HTTP: `/api/jt_slot_check.json`, `/api/jt_slot_process.json`, `/api/jt_scan.json`, `/api/string_xrefs.json`, `/api/mmio_annotate.json`
+* **DoD:** `GET /openapi.json` 200; `POST /api/jt_slot_check.json` returns envelope.
+* *commit:* (already set)
+
+### 2) ✅ CLIENT-UNIFY — Single client + whitelist (ID: CLIENT-UNIFY)
+
+* **DoD:** Unit tests prove allow/deny surface (cached alias resolver).
+* *commit:* (already set)
 
 ### 3) ✅ RANGE-CONTRACT — Enforce `[code_min, code_max)` (ID: RANGE-CONTRACT)
-- Adapter uses `< code_max`; docs/tests updated
-- **DoD:** Off-by-one at the upper bound covered by tests _commit: 6be4e76_
-  - What changed: Added unit, contract, and golden coverage for jump-table slots equal to `code_max`.
+
+* **DoD:** Upper-bound off-by-one covered by tests.
+* *commit:* (already set)
 
 ### 4) ✅ JT-VERIFY — Strict ARM/Thumb READ→VERIFY (ID: JT-VERIFY)
-- Probe ARM at `ptr` and Thumb at `ptr-1` only if in range
-- Verify via `get_function_by_address` or `disassemble_function` before marking valid;
-  else set `NO_FUNCTION_AT_TARGET`
-- Treat `0xE12FFF1C` as `ARM_INSTRUCTION`
-- **DoD:** Tests for instruction word, out-of-range, valid ARM, valid Thumb pass
-  _commit: a46ccca_
-  - What changed: Tightened ARM/Thumb probing to respect range checks and require verified metadata for Thumb fallbacks.
-  - What changed: Updated adapter verification logic and tests to accept either disassembly or metadata while enforcing entry points.
 
-### 5) ✅ JT-SCAN — Read-only batch scan (ID: JT-SCAN)
-- Implement `jt_scan` aggregating `slot_check`; correct `summary.total == items.length`
-- **DoD:** Contract test with 16 mixed slots passes _commit: ae8871f_
-  - What changed: Confirmed batch `jt_scan` reuses slot checks and reports accurate summary counts for 16-slot contract data.
-### 6) ⬜️ MMIO-HEUR — Precise MMIO heuristics (ID: MMIO-HEUR)
-- Count only `LDR`/`STR`; exclude `LDM/STM`
-- Extract targets from `[#imm]` or `=imm`; ignore unrelated immediates
-- Writes gated by `ENABLE_WRITES=false` default and `dry_run:true`
-- **DoD:** Unit tests demonstrate reduced false positives  
-  _commit:_
+* **DoD:** Instruction sentinel, OOR, valid ARM, valid Thumb.
+* *commit:* (already set)
 
-### 7) ⬜️ SCHEMA-STRICT — Strict schemas + envelope (ID: SCHEMA-STRICT)
-- All deterministic endpoints/tools return `{ ok, data|null, errors[] }`
-- Validate `data` against JSON Schemas (`additionalProperties:false`)
-- **DoD:** Contract tests enforce schemas; invalid payloads → 400 + error envelope  
-  _commit:_
+### 5) ✅ JT-SCAN — Read-only batch (ID: JT-SCAN)
 
-### 8) ⬜️ OBS-LIMITS — Observability & limits (ID: OBS-LIMITS)
-- Apply `request_scope` to HTTP & MCP tools (timings, counters, request IDs)
-- Enforce `MaxWritesPerRequest=2`, `MaxItemsPerBatch=256`, timeouts
-- Write audit: old→new name, comment diff, verify result
-- **DoD:** Structured logs visible; audit entries present on writes  
-  _commit:_
+* **DoD:** 16-slot contract test passes; `summary.total == len(items)`.
+* *commit:* (already set)
 
-### 9) ⬜️ LEGACY-PARITY — Prove old APIs unchanged (ID: LEGACY-PARITY)
-- Golden tests for selected legacy endpoints
-- Shell probe script exercises legacy routes successfully
-- **DoD:** Golden + probe green  
-  _commit:_
+### 6) ⬜ MMIO-HEUR — Precise MMIO heuristics (ID: MMIO-HEUR)
 
-### 10) ⬜️ CI-TESTS — Run tests before packaging (ID: CI-TESTS)
-- CI executes unit + contract + golden tests; fails on schema drift
-- **DoD:** CI shows tests gating release  
-  _commit:_
+* Count only `LDR`/`STR`; ignore `LDM/STM`; extract from `[#imm]` or `=imm`.
+* Respect `dry_run` & `ENABLE_WRITES=false`.
+* **DoD:** Unit tests show reduced false positives; contract schema `mmio_annotate.v1.json` satisfied.
+* **Run:** `python -m pytest -q bridge/tests/unit/test_mmio_heuristics.py`
 
-### 11) ⬜️ DOCS-BOOTSTRAP — Developer docs & artifacts (ID: DOCS-BOOTSTRAP)
-- Update README (local run, health checks, examples, safe writes)
-- Add `.env.sample` and `bin/smoke.sh`
-- **DoD:** Quickstart reproducible on a clean machine  
-  _commit:_
+### 7) ⬜ SCHEMA-STRICT — Enforce schemas & envelope (ID: SCHEMA-STRICT)
 
-### 12) ⬜️ CONTROL-FILES — Repo control files (ID: CONTROL-FILES)
-- Add/update: `/.plan/tasks.manifest.json`, `/.plan/state.json` (optional `/.plan/pr.json`)
-- **DoD:** Codex reads/updates these each session; state persists across chats  
-  _commit:_
+* All HTTP endpoints & MCP tools return `{ok, data|null, errors[]}` with `additionalProperties:false`.
+* Negative tests (fehlende Felder) → 400 + envelope.
+* **DoD:** `tests/contract/test_schemas.py` passes for all `/api/*.json`.
+* **Run:** `python -m pytest -q bridge/tests/contract/test_schemas.py`
 
-### 13) ⬜️ OPTIONAL-ADAPTERS — Additional ArchAdapters (ID: OPTIONAL-ADAPTERS)
-- Add x86/MIPS/RISC-V adapters after core is stable
-- **DoD:** Adapter tests & docs  
-  _commit:_
+### 8) ⬜ OBS-LIMITS — Observability & limits (ID: OBS-LIMITS)
+
+* Add `request_scope` metrics (request_id, timings, counters) + structured logs.
+* Enforce `GHIDRA_MCP_MAX_WRITES_PER_REQUEST`, `GHIDRA_MCP_MAX_ITEMS_PER_BATCH`, timeouts.
+* Audit JSONL when writes enabled (old→new name, comment diff, verify result).
+* **DoD:** `tests/obs/test_limits_and_audit.py` green; sample audit file created in tmp.
+* **Run:** `python -m pytest -q bridge/tests/obs/test_limits_and_audit.py`
+
+### 9) ⬜ LEGACY-PARITY — Legacy API unchanged (ID: LEGACY-PARITY)
+
+* Golden tests for selected legacy routes + shell probe.
+* **DoD:** Golden + probe green; no response drift.
+* **Run:** `python -m pytest -q bridge/tests/golden/test_legacy_apis.py && scripts/probe_legacy.sh`
+
+### 10) ⬜ CI-TESTS — Gate builds on tests (ID: CI-TESTS)
+
+* Extend GitHub Actions: run unit + contract + golden before Maven packaging.
+* **DoD:** Workflow fails on schema drift; artifact only on green.
+* **Run:** (via CI)
+
+### 11) ⬜ DOCS-BOOTSTRAP — Developer docs & scripts (ID: DOCS-BOOTSTRAP)
+
+* README Quickstart: Ports (`8081` Shim API, `8099` SSE), `/api/health.json`, curl examples.
+* Add `bin/smoke.sh`.
+* **DoD:** Fresh machine can follow README to green smoke.
+* **Run:** `bin/smoke.sh`
+
+### 12) ⬜ CONTROL-FILES — Orchestrating Codex runs (ID: CONTROL-FILES)
+
+* Maintain `/.plan/tasks.manifest.json` order; **UTF-8 fix** for „→“.
+* Keep `/.plan/state.json` in sync (siehe Task 0).
+* **DoD:** Tests assert UTF-8 & sync; Codex follows the manifest sequence.
+* **Run:** `python -m pytest -q bridge/tests/plan/test_manifest_and_state.py`
+
+### 13) ⬜ OPTIONAL-ADAPTERS — x86/MIPS/RISCV (ID: OPTIONAL-ADAPTERS)
+
+* Add adapters + tests after core stabilisiert.
+* **DoD:** Adapter tests & docs.
 
