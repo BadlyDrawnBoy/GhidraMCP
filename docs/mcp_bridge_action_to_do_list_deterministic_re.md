@@ -97,7 +97,7 @@
     - Resolve varying plugin endpoints; cache
     - **DoD:** Negative tests (older alias names) pass.
     - ✅ POST operations reuse the alias resolver with CamelCase fallbacks and cached hits; unit tests confirm legacy names resolve.
-14. ⬜️ **Finalize whitelist client**
+14. ✅ **Finalize whitelist client**
     - **Allowed:** `read_dword`, `disassemble_function`, `get_function_by_address`, `get_xrefs_to`, `rename_function_by_address`, `set_*comment`
     - **Forbidden:** `read_bytes`, `read_cstring`, all `list_*`, `search_*`, `confirm:true`
     - **DoD:** Attempting forbidden calls yields a defined error code; tests green.

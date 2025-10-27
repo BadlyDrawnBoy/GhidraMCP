@@ -22,11 +22,16 @@ class WhitelistEntry:
 DEFAULT_WHITELIST: Dict[str, Iterable[WhitelistEntry]] = {
     "GET": (
         WhitelistEntry("GET", "READ_DWORD", ("read_dword",)),
-        WhitelistEntry("GET", "DECOMPILE_BY_ADDR", ("decompile_by_addr", "decompileByAddress")),
-        WhitelistEntry("GET", "DISASSEMBLE", ("disassemble", "disassemble_function", "disasmByAddr")),
-        WhitelistEntry("GET", "FUNC_BY_ADDR", ("function_by_addr", "get_function_by_address", "functionMeta")),
-        WhitelistEntry("GET", "LIST_FUNCTIONS", ("functions", "list_functions")),
-        WhitelistEntry("GET", "LIST_STRINGS", ("strings", "list_strings")),
+        WhitelistEntry(
+            "GET",
+            "DISASSEMBLE",
+            ("disassemble", "disassemble_function", "disasmByAddr"),
+        ),
+        WhitelistEntry(
+            "GET",
+            "FUNC_BY_ADDR",
+            ("function_by_addr", "get_function_by_address", "functionMeta"),
+        ),
         WhitelistEntry("GET", "GET_XREFS_TO", ("get_xrefs_to", "xrefs_to")),
     ),
     "POST": (

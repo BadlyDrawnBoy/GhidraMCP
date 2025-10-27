@@ -86,3 +86,40 @@ def test_post_alias_resolver_falls_back_to_camel_case():
         "/api/rename_function_by_address",
         "/api/renameFunctionByAddress",
     ]
+
+
+def test_default_whitelist_blocks_forbidden_get_calls():
+    def handle(_request: httpx.Request) -> httpx.Response:  # pragma: no cover - blocked
+        raise AssertionError("Forbidden GET endpoint should never reach transport")
+
+    client = GhidraClient(
+        "https://example.test/api",
+        transport=_build_transport(handle),
+    )
+
+    for path in ("read_bytes", "read_cstring", "list_functions", "search_bytes"):
+        result = client._request_lines("GET", path)
+        assert result == [f"ERROR: endpoint GET {path} not allowed"]
+
+
+def test_confirm_true_payload_is_rejected():
+    def handle(_request: httpx.Request) -> httpx.Response:  # pragma: no cover - blocked
+        raise AssertionError("Requests with confirm=true should be rejected before transport")
+
+    client = GhidraClient(
+        "https://example.test/api",
+        transport=_build_transport(handle),
+    )
+
+    result = client._request_lines(
+        "POST",
+        "rename_function_by_address",
+        key="RENAME_FUNCTION",
+        data={
+            "function_address": "0x00401000",
+            "new_name": "foo",
+            "confirm": True,
+        },
+    )
+
+    assert result == ["ERROR: endpoint POST rename_function_by_address not allowed"]
