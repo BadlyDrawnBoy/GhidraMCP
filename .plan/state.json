@@ -1,0 +1,18 @@
+{
+  "pr": {"number": null, "branch": "feature/deterministic-bridge", "updated_at": null},
+  "tasks": {
+    "API-MOUNT": {"status":"todo","commit":null,"updated_at":null},
+    "CLIENT-UNIFY": {"status":"todo","commit":null,"updated_at":null},
+    "RANGE-CONTRACT": {"status":"todo","commit":null,"updated_at":null},
+    "JT-VERIFY": {"status":"todo","commit":null,"updated_at":null},
+    "JT-SCAN": {"status":"todo","commit":null,"updated_at":null},
+    "MMIO-HEUR": {"status":"todo","commit":null,"updated_at":null},
+    "SCHEMA-STRICT": {"status":"todo","commit":null,"updated_at":null},
+    "OBS-LIMITS": {"status":"todo","commit":null,"updated_at":null},
+    "LEGACY-PARITY": {"status":"todo","commit":null,"updated_at":null},
+    "CI-TESTS": {"status":"todo","commit":null,"updated_at":null},
+    "DOCS-BOOTSTRAP": {"status":"todo","commit":null,"updated_at":null},
+    "CONTROL-FILES": {"status":"todo","commit":null,"updated_at":null},
+    "OPTIONAL-ADAPTERS": {"status":"todo","commit":null,"updated_at":null}
+  }
+}

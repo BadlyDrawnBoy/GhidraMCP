@@ -1,10 +1,18 @@
 {
   "version": 1,
   "sequence": [
-    {"id": "BOOT-RUNTIME", "title": "Agent bootstrap: runtime & entrypoint"},
-    {"id": "BOOT-ENV", "title": "Agent bootstrap: environment variables", "after": ["BOOT-RUNTIME"]},
-    {"id": "BOOT-HEALTH", "title": "Agent bootstrap: health & smoke checks", "after": ["BOOT-ENV"]},
-    {"id": "BOOT-TESTS", "title": "Agent bootstrap: test harness", "after": ["BOOT-HEALTH"]},
-    {"id": "BOOT-PR", "title": "Agent bootstrap: single-branch PR setup", "after": ["BOOT-TESTS"]}
+    {"id":"API-MOUNT","title":"Mount deterministic routes & register MCP tools","after":[]},
+    {"id":"CLIENT-UNIFY","title":"Unify Ghidra client + whitelist","after":["API-MOUNT"]},
+    {"id":"RANGE-CONTRACT","title":"[min,max) range enforcement","after":["CLIENT-UNIFY"]},
+    {"id":"JT-VERIFY","title":"Strict ARM/Thumb READ→VERIFY","after":["RANGE-CONTRACT"]},
+    {"id":"JT-SCAN","title":"Read-only batch scan","after":["JT-VERIFY"]},
+    {"id":"MMIO-HEUR","title":"Precise MMIO heuristics","after":["JT-VERIFY"]},
+    {"id":"SCHEMA-STRICT","title":"Strict schemas + envelope","after":["JT-SCAN","MMIO-HEUR"]},
+    {"id":"OBS-LIMITS","title":"Observability & limits","after":["SCHEMA-STRICT"]},
+    {"id":"LEGACY-PARITY","title":"Prove old APIs unchanged","after":["OBS-LIMITS"]},
+    {"id":"CI-TESTS","title":"Run tests before packaging","after":["LEGACY-PARITY"]},
+    {"id":"DOCS-BOOTSTRAP","title":"Developer docs & artifacts","after":["CI-TESTS"]},
+    {"id":"CONTROL-FILES","title":"Repo control files for Codex sessions","after":["DOCS-BOOTSTRAP"]},
+    {"id":"OPTIONAL-ADAPTERS","title":"Additional ArchAdapters","after":["CONTROL-FILES"]}
   ]
 }
