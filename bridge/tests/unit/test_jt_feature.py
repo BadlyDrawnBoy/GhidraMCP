@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from bridge.features import jt
 
@@ -13,16 +13,24 @@ class StubAdapter:
 
     in_range: bool = True
     sentinel: bool = False
-    mode: Optional[str] = "direct"
+    mode: Optional[str] = "ARM"
     target: Optional[int] = 0x401000
+    probe_map: Dict[int, tuple[Optional[str], Optional[int]]] = field(default_factory=dict)
+    sentinel_values: Dict[int, bool] = field(default_factory=dict)
 
-    def in_code_range(self, _ptr: int, _code_min: int, _code_max: int) -> bool:
-        return self.in_range
+    def in_code_range(self, ptr: int, code_min: int, code_max: int) -> bool:
+        if not self.in_range:
+            return False
+        return code_min <= ptr < code_max
 
-    def is_instruction_sentinel(self, _raw: int) -> bool:
+    def is_instruction_sentinel(self, raw: int) -> bool:
+        if raw in self.sentinel_values:
+            return self.sentinel_values[raw]
         return self.sentinel
 
-    def probe_function(self, _ptr: int) -> tuple[Optional[str], Optional[int]]:
+    def probe_function(self, _client, ptr: int) -> tuple[Optional[str], Optional[int]]:
+        if ptr in self.probe_map:
+            return self.probe_map[ptr]
         return self.mode, self.target
 
 
@@ -32,6 +40,7 @@ class StubClient:
 
     read_result: Optional[int]
     metadata: List[Optional[Dict[str, object]]] = field(default_factory=list)
+    read_values: List[Optional[int]] = field(default_factory=list)
     rename_result: bool = True
     comment_result: bool = True
 
@@ -42,6 +51,8 @@ class StubClient:
 
     def read_dword(self, addr: int) -> Optional[int]:
         self.read_addresses.append(addr)
+        if self.read_values:
+            return self.read_values.pop(0)
         return self.read_result
 
     def get_function_by_address(self, addr: int) -> Optional[Dict[str, object]]:
@@ -92,6 +103,22 @@ def test_slot_check_rejects_out_of_range_values() -> None:
     assert result["errors"] == ["OUT_OF_RANGE"]
 
 
+def test_slot_check_rejects_upper_bound_value() -> None:
+    client = StubClient(read_result=0x410000)
+    adapter = StubAdapter()
+
+    result = jt.slot_check(
+        client,
+        jt_base=0x400000,
+        slot_index=4,
+        code_min=0x400000,
+        code_max=0x410000,
+        adapter=adapter,
+    )
+
+    assert result["errors"] == ["OUT_OF_RANGE"]
+
+
 def test_slot_check_detects_instruction_sentinel() -> None:
     client = StubClient(read_result=0x400123)
     adapter = StubAdapter(sentinel=True)
@@ -114,7 +141,7 @@ def test_slot_process_dry_run_collects_metadata_without_writes() -> None:
         read_result=0x400200,
         metadata=[{"name": "orig_name"}],
     )
-    adapter = StubAdapter(mode="branch", target=0x400200)
+    adapter = StubAdapter(mode="ARM", target=0x400200)
 
     result = jt.slot_process(
         client,
@@ -138,9 +165,9 @@ def test_slot_process_dry_run_collects_metadata_without_writes() -> None:
 def test_slot_process_performs_writes_and_verifies_results() -> None:
     client = StubClient(
         read_result=0x400200,
-        metadata=[{"name": "new_7", "comment": "note"}],
+        metadata=[{"name": "orig_7"}, {"name": "new_7", "comment": "note"}],
     )
-    adapter = StubAdapter(mode="branch", target=0x400200)
+    adapter = StubAdapter(mode="ARM", target=0x400200)
 
     result = jt.slot_process(
         client,
@@ -162,12 +189,38 @@ def test_slot_process_performs_writes_and_verifies_results() -> None:
     assert client.comment_calls == [(0x400200, "note")]
 
 
+def test_slot_process_aborts_when_pre_verify_missing() -> None:
+    client = StubClient(
+        read_result=0x400200,
+        metadata=[],
+    )
+    adapter = StubAdapter(mode="ARM", target=0x400200)
+
+    result = jt.slot_process(
+        client,
+        jt_base=0x400000,
+        slot_index=7,
+        code_min=0x400000,
+        code_max=0x500000,
+        rename_pattern="new_{slot}",
+        comment="note",
+        adapter=adapter,
+        dry_run=False,
+        writes_enabled=True,
+    )
+
+    assert result["errors"] == ["NO_FUNCTION_AT_TARGET"]
+    assert result["writes"] == {"renamed": False, "comment_set": False}
+    assert client.rename_calls == []
+    assert client.comment_calls == []
+
+
 def test_slot_process_handles_format_errors() -> None:
     client = StubClient(
         read_result=0x400200,
         metadata=[{"name": "ignored"}],
     )
-    adapter = StubAdapter(mode="branch", target=0x400200)
+    adapter = StubAdapter(mode="ARM", target=0x400200)
 
     result = jt.slot_process(
         client,
@@ -185,3 +238,57 @@ def test_slot_process_handles_format_errors() -> None:
     assert result["errors"] == ["FORMAT_ERROR:'missing'"]
     assert client.rename_calls == []
     assert client.comment_calls == []
+
+
+def test_slot_process_rejects_unknown_mode() -> None:
+    client = StubClient(
+        read_result=0x400200,
+        metadata=[{"name": "orig"}],
+    )
+    adapter = StubAdapter(mode="MIPS", target=0x400200)
+
+    result = jt.slot_process(
+        client,
+        jt_base=0x400000,
+        slot_index=2,
+        code_min=0x400000,
+        code_max=0x500000,
+        rename_pattern="new_{slot}",
+        comment="note",
+        adapter=adapter,
+        dry_run=False,
+        writes_enabled=True,
+    )
+
+    assert result["errors"] == ["NO_FUNCTION_AT_TARGET"]
+    assert client.rename_calls == []
+    assert client.comment_calls == []
+
+
+def test_scan_batches_slot_checks_with_summary() -> None:
+    client = StubClient(
+        read_result=0,
+        read_values=[0x400200, 0x410000, 0x400204],
+    )
+    adapter = StubAdapter(
+        probe_map={
+            0x400200: ("ARM", 0x400200),
+            0x400204: ("Thumb", 0x400204),
+        }
+    )
+
+    result = jt.scan(
+        client,
+        jt_base=0x400000,
+        start=0,
+        count=3,
+        code_min=0x400000,
+        code_max=0x410000,
+        adapter=adapter,
+    )
+
+    assert result["summary"] == {"total": 3, "valid": 2, "invalid": 1}
+    assert [item["slot"] for item in result["items"]] == [0, 1, 2]
+    assert result["items"][0]["errors"] == []
+    assert result["items"][1]["errors"] == ["OUT_OF_RANGE"]
+    assert result["items"][2]["errors"] == []

@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Protocol, Tuple
+from typing import TYPE_CHECKING, Protocol, Tuple
+
+if TYPE_CHECKING:  # pragma: no cover - import only used for typing
+    from ..ghidra.client import GhidraClient
 
 
 class ArchAdapter(Protocol):
@@ -14,7 +17,7 @@ class ArchAdapter(Protocol):
     def is_instruction_sentinel(self, raw: int) -> bool:
         ...
 
-    def probe_function(self, ptr: int) -> Tuple[str | None, int | None]:
+    def probe_function(self, client: "GhidraClient", ptr: int) -> Tuple[str | None, int | None]:
         ...
 
 

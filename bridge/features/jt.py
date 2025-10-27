@@ -82,7 +82,7 @@ def slot_check(
     if adapter.is_instruction_sentinel(raw_val):
         result.errors.append(ErrorCode.ARM_INSTRUCTION.value)
         return result.to_dict()
-    mode, target = adapter.probe_function(raw_val)
+    mode, target = adapter.probe_function(client, raw_val)
     if mode and target is not None:
         result.mode = mode
         result.target = int_to_hex(target)
@@ -134,6 +134,9 @@ def slot_process(
         result.errors.append(ErrorCode.WRITE_DISABLED_DRY_RUN.value)
         return result.to_dict()
     target_int = int(result.target, 16)
+    if result.mode not in {"ARM", "Thumb"}:
+        result.errors.append(ErrorCode.NO_FUNCTION_AT_TARGET.value)
+        return result.to_dict()
     if dry_run:
         meta = client.get_function_by_address(target_int)
         result.verify_name = meta.get("name") if meta else None
@@ -142,6 +145,10 @@ def slot_process(
         new_name = rename_pattern.format(slot=result.slot, target=result.target)
     except KeyError as exc:
         result.errors.append(f"FORMAT_ERROR:{exc}")
+        return result.to_dict()
+    pre_meta = client.get_function_by_address(target_int)
+    if not pre_meta:
+        result.errors.append(ErrorCode.NO_FUNCTION_AT_TARGET.value)
         return result.to_dict()
     record_write_attempt()
     if client.rename_function(target_int, new_name):
