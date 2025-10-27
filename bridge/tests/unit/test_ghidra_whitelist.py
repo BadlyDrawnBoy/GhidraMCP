@@ -54,3 +54,35 @@ def test_requests_for_unknown_alias_are_blocked():
     result = client._request_lines("GET", "disasmByAddr", key="DISASSEMBLE")
 
     assert result == ["ERROR: endpoint GET disasmByAddr not allowed"]
+
+
+def test_post_alias_resolver_falls_back_to_camel_case():
+    requested_paths = []
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        requested_paths.append(request.url.path)
+        if request.url.path.endswith("rename_function_by_address"):
+            return httpx.Response(404, text="Not Found")
+        return httpx.Response(200, text="")
+
+    whitelist = {
+        "POST": (
+            WhitelistEntry(
+                "POST",
+                "RENAME_FUNCTION",
+                ("rename_function_by_address", "renameFunctionByAddress"),
+            ),
+        )
+    }
+
+    client = GhidraClient(
+        "https://example.test/api",
+        whitelist=whitelist,
+        transport=_build_transport(handle),
+    )
+
+    assert client.rename_function(0x401000, "new_name") is True
+    assert requested_paths == [
+        "/api/rename_function_by_address",
+        "/api/renameFunctionByAddress",
+    ]

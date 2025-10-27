@@ -30,8 +30,20 @@ DEFAULT_WHITELIST: Dict[str, Iterable[WhitelistEntry]] = {
         WhitelistEntry("GET", "GET_XREFS_TO", ("get_xrefs_to", "xrefs_to")),
     ),
     "POST": (
-        WhitelistEntry("POST", "RENAME_FUNCTION", ("rename_function_by_address",)),
-        WhitelistEntry("POST", "SET_DECOMPILER_COMMENT", ("set_decompiler_comment",)),
-        WhitelistEntry("POST", "SET_DISASSEMBLY_COMMENT", ("set_disassembly_comment",)),
+        WhitelistEntry(
+            "POST",
+            "RENAME_FUNCTION",
+            ("rename_function_by_address", "renameFunctionByAddress"),
+        ),
+        WhitelistEntry(
+            "POST",
+            "SET_DECOMPILER_COMMENT",
+            ("set_decompiler_comment", "setDecompilerComment"),
+        ),
+        WhitelistEntry(
+            "POST",
+            "SET_DISASSEMBLY_COMMENT",
+            ("set_disassembly_comment", "setDisassemblyComment"),
+        ),
     ),
 }

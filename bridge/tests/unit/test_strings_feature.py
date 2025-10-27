@@ -63,7 +63,7 @@ def test_xrefs_compact_respects_limit_and_trims():
 
     payload = xrefs_compact(client, string_addr=0x2000, limit=2)
 
-    assert payload["count"] == 2
+    assert payload["count"] == len(xrefs)
     assert len(payload["callers"]) == 2
     # Ensure limit was forwarded and only first two addresses were processed
     assert client.last_limit == 2

@@ -87,6 +87,25 @@ def test_mmio_annotate_skips_block_transfer_instructions():
     assert [sample["addr"] for sample in payload["samples"]] == ["0x00420008"]
 
 
+def test_mmio_annotate_ignores_byte_and_halfword_variants():
+    disassembly = [
+        "00425000: LDRB R0, [R1, #0x1]",
+        "00425004: STRH R0, [R1, #0x2]",
+        "00425008: LDRNE R0, [R1, #0x4]",
+        "0042500C: STRCS R0, [R1, #0x8]",
+    ]
+    client = DummyClient(disassembly)
+
+    payload = mmio.annotate(client, function_addr=0x425000)
+
+    assert payload["reads"] == 1
+    assert payload["writes"] == 1
+    assert [sample["addr"] for sample in payload["samples"]] == [
+        "0x00425008",
+        "0x0042500c",
+    ]
+
+
 def test_mmio_annotate_extracts_literal_and_offset_targets():
     disassembly = [
         "00430000: LDR R0, =0x50000000",

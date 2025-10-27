@@ -80,20 +80,23 @@
 
 ## 3) Strings & MMIO
 
-11. ⬜️ ``** compact**
+11. ✅ ``** compact**
     - `get_xrefs_to` + small context (callsite/arg hint), honor limit
     - **DoD:** Contract test; large lists truncated; `count` correct.
-12. ⬜️ ``** heuristics**
+    - ✅ Responses now report the total xref count while truncating caller details to the requested limit; unit + contract tests cover the limit behavior.
+12. ✅ ``** heuristics**
     - Count only `LDR`/`STR`; exclude `LDM/STM`; extract targets from `[#imm]`/`=imm` reliably
     - **DoD:** Unit tests for LDM/STM/indirect; lower false‑positive rate.
+    - ✅ Load/store classification now ignores byte/halfword variants while preserving conditional ARM forms; unit coverage locks the reduced false positives.
 
 ---
 
 ## 4) HTTP client & resolver
 
-13. ⬜️ **POST alias resolver** (mirrors GET behavior)
+13. ✅ **POST alias resolver** (mirrors GET behavior)
     - Resolve varying plugin endpoints; cache
     - **DoD:** Negative tests (older alias names) pass.
+    - ✅ POST operations reuse the alias resolver with CamelCase fallbacks and cached hits; unit tests confirm legacy names resolve.
 14. ⬜️ **Finalize whitelist client**
     - **Allowed:** `read_dword`, `disassemble_function`, `get_function_by_address`, `get_xrefs_to`, `rename_function_by_address`, `set_*comment`
     - **Forbidden:** `read_bytes`, `read_cstring`, all `list_*`, `search_*`, `confirm:true`
