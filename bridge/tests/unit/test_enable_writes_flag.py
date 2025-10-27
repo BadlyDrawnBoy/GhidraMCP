@@ -11,7 +11,7 @@ class DummyAdapter:
     def is_instruction_sentinel(self, raw: int) -> bool:
         return False
 
-    def probe_function(self, client, ptr: int):
+    def probe_function(self, client, ptr: int, code_min: int, code_max: int):
         return "Thumb", ptr
 
 

@@ -83,7 +83,7 @@ def slot_check(
     if not adapter.in_code_range(raw_val, code_min, code_max):
         result.errors.append(ErrorCode.OUT_OF_RANGE.value)
         return result.to_dict()
-    mode, target = adapter.probe_function(client, raw_val)
+    mode, target = adapter.probe_function(client, raw_val, code_min, code_max)
     if mode and target is not None:
         result.mode = mode
         result.target = int_to_hex(target)

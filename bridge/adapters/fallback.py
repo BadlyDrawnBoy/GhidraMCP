@@ -14,7 +14,9 @@ class FallbackAdapter(ArchAdapter):
     def is_instruction_sentinel(self, raw: int) -> bool:  # pragma: no cover - trivial
         return False
 
-    def probe_function(self, client, ptr: int) -> tuple[str | None, int | None]:  # pragma: no cover - fallback does nothing
+    def probe_function(
+        self, client, ptr: int, code_min: int, code_max: int
+    ) -> tuple[str | None, int | None]:  # pragma: no cover - fallback does nothing
         return None, None
 
 

@@ -30,35 +30,51 @@ def test_probe_function_arm_and_thumb():
             }
         }
     )
-    mode, target = adapter.probe_function(client, 0x2000)
+    mode, target = adapter.probe_function(client, 0x2000, 0x1000, 0x3000)
     assert mode == "ARM"
     assert target == 0x2000
 
-    mode, target = adapter.probe_function(client, 0x2001)
+    mode, target = adapter.probe_function(client, 0x2001, 0x1000, 0x3000)
     assert mode == "Thumb"
     assert target == 0x2000
 
 
-def test_probe_function_requires_disasm_and_metadata():
+def test_probe_function_uses_metadata_when_disassembly_missing():
     adapter = ARMThumbAdapter()
     client = StubClient(
         {
             0x3000: {
                 "disasm": [],
                 "meta": {"entry_point": 0x3000},
-            },
+            }
+        }
+    )
+
+    mode, target = adapter.probe_function(client, 0x3000, 0x2000, 0x4000)
+    assert mode == "ARM"
+    assert target == 0x3000
+
+
+def test_probe_function_rejects_unverified_targets():
+    adapter = ARMThumbAdapter()
+    client = StubClient(
+        {
             0x3004: {
                 "disasm": ["00300400: PUSH {r4, lr}"],
+                "meta": {"entry_point": 0x3008},
+            },
+            0x3008: {
+                "disasm": [],
                 "meta": None,
             },
         }
     )
 
-    mode, target = adapter.probe_function(client, 0x3000)
+    mode, target = adapter.probe_function(client, 0x3005, 0x2000, 0x4000)
     assert mode is None
     assert target is None
 
-    mode, target = adapter.probe_function(client, 0x3005)
+    mode, target = adapter.probe_function(client, 0x3008, 0x2000, 0x4000)
     assert mode is None
     assert target is None
 
