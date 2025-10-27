@@ -31,10 +31,33 @@ Jump-table specific requests (`jt_slot_check`, `jt_slot_process`, `jt_scan`) use
 
 `jt_slot_process` performs at most two write operations (rename + comment) and only after the candidate address is
 re-confirmed as a valid ARM/Thumb function start. A second metadata fetch verifies the rename/comment before the
-response is returned.
+response is returned, and successful writes are mirrored into a JSONL audit log so the old/new names and comments can be
+reviewed later.
 
 `jt_scan` walks slots sequentially and the returned summary always reports `total == len(items)` with separate
 valid/invalid counters for deterministic auditing.
+
+### Deterministic HTTP & MCP endpoints
+
+The Starlette surface and MCP tools share schema-locked payloads stored under
+[`bridge/api/schemas/`](bridge/api/schemas/). Requests are validated with `additionalProperties:false` and responses use the
+shared `envelope.v1.json` wrapper.
+
+| Endpoint/tool | Purpose |
+| --- | --- |
+| `/api/jt_slot_check.json`, `jt_slot_check` | Probe a single jump-table slot and report target metadata. |
+| `/api/jt_slot_process.json`, `jt_slot_process` | Rename + annotate a jump-table target (honours `dry_run` and write limits). |
+| `/api/jt_scan.json`, `jt_scan` | Batch slot checks with deterministic summaries (`total`, `valid`, `invalid`). |
+| `/api/string_xrefs.json`, `string_xrefs_compact` | Return compact caller/xref context with accurate counts. |
+| `/api/mmio_annotate.json`, `mmio_annotate_compact` | Analyse MMIO access patterns with capped samples. |
+
+Example request (local shim):
+
+```bash
+curl -s http://127.0.0.1:8081/api/jt_slot_check.json \
+  -H 'content-type: application/json' \
+  -d '{"jt_base":"0x00100000","slot_index":0,"code_min":"0x00100000","code_max":"0x0010FFFF"}' | jq
+```
 
 ## Installation quick start
 
@@ -90,6 +113,7 @@ needed:
 - `GHIDRA_SERVER_URL` – Base URL of the Ghidra HTTP plugin (defaults to `http://127.0.0.1:8080/`).
 - `GHIDRA_MCP_ENABLE_WRITES` – Set to `true` to allow deterministic write operations; keep `false` unless audit logging is in
   place.
+- `GHIDRA_MCP_AUDIT_LOG` – Optional path to a JSONL audit log that records successful rename/comment operations.
 - `GHIDRA_MCP_MAX_WRITES_PER_REQUEST` – Safety limit for how many write operations a deterministic request may perform (default: `2`).
 - `GHIDRA_MCP_MAX_ITEMS_PER_BATCH` – Maximum number of items processed per deterministic batch (default: `256`).
 - `MCP_MAX_LINES_SOFT`, `MCP_MAX_ITEMS_SOFT`, `MCP_MAX_ITEMS_HARD` – Legacy bridge safeguards controlling response truncation.
@@ -130,6 +154,12 @@ The resulting ZIP contains the plugin artefacts (`lib/GhidraMCP.jar`, `extension
 ## Status & roadmap
 
 The detailed roadmap for the Hedera/OpenWebUI bridge lives in [`docs/openwebui_mcp_http_plan.md`](docs/openwebui_mcp_http_plan.md) with a live to-do tracker in [`docs/openwebui_mcp_http_todo.md`](docs/openwebui_mcp_http_todo.md). Expect the documentation to evolve as the AI agents figure out what to do next.
+
+## Orchestrator experiments
+
+The `bridge/orchestrator` package holds a parse-only aggregator that scrapes deterministic JSON envelopes from raw
+subagent transcripts. It ignores previous chatter, validates each envelope against `envelope.v1.json`, and builds a
+summary so you can see which tasks produced usable data versus `NON_JSON`/`INVALID_SCHEMA` failures.
 
 ## Acknowledgements
 
