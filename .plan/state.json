@@ -1,18 +1,74 @@
 {
-  "pr": {"number": null, "branch": "feature/deterministic-bridge", "updated_at": null},
+  "pr": {
+    "number": null,
+    "branch": "feature/deterministic-bridge",
+    "updated_at": null
+  },
   "tasks": {
-    "API-MOUNT": {"status":"todo","commit":null,"updated_at":null},
-    "CLIENT-UNIFY": {"status":"todo","commit":null,"updated_at":null},
-    "RANGE-CONTRACT": {"status":"todo","commit":null,"updated_at":null},
-    "JT-VERIFY": {"status":"todo","commit":null,"updated_at":null},
-    "JT-SCAN": {"status":"todo","commit":null,"updated_at":null},
-    "MMIO-HEUR": {"status":"todo","commit":null,"updated_at":null},
-    "SCHEMA-STRICT": {"status":"todo","commit":null,"updated_at":null},
-    "OBS-LIMITS": {"status":"todo","commit":null,"updated_at":null},
-    "LEGACY-PARITY": {"status":"todo","commit":null,"updated_at":null},
-    "CI-TESTS": {"status":"todo","commit":null,"updated_at":null},
-    "DOCS-BOOTSTRAP": {"status":"todo","commit":null,"updated_at":null},
-    "CONTROL-FILES": {"status":"todo","commit":null,"updated_at":null},
-    "OPTIONAL-ADAPTERS": {"status":"todo","commit":null,"updated_at":null}
+    "API-MOUNT": {
+      "status": "done",
+      "commit": "05dd4ae",
+      "updated_at": "2025-10-28T00:41:13+01:00"
+    },
+    "CLIENT-UNIFY": {
+      "status": "done",
+      "commit": "2d3b1d0",
+      "updated_at": "2025-10-28T00:41:13+01:00"
+    },
+    "RANGE-CONTRACT": {
+      "status": "done",
+      "commit": "844252e",
+      "updated_at": "2025-10-28T00:41:13+01:00"
+    },
+    "JT-VERIFY": {
+      "status": "done",
+      "commit": "844252e",
+      "updated_at": "2025-10-28T00:41:13+01:00"
+    },
+    "JT-SCAN": {
+      "status": "done",
+      "commit": "844252e",
+      "updated_at": "2025-10-28T00:41:13+01:00"
+    },
+    "MMIO-HEUR": {
+      "status": "todo",
+      "commit": null,
+      "updated_at": null
+    },
+    "SCHEMA-STRICT": {
+      "status": "todo",
+      "commit": null,
+      "updated_at": null
+    },
+    "OBS-LIMITS": {
+      "status": "todo",
+      "commit": null,
+      "updated_at": null
+    },
+    "LEGACY-PARITY": {
+      "status": "todo",
+      "commit": null,
+      "updated_at": null
+    },
+    "CI-TESTS": {
+      "status": "todo",
+      "commit": null,
+      "updated_at": null
+    },
+    "DOCS-BOOTSTRAP": {
+      "status": "todo",
+      "commit": null,
+      "updated_at": null
+    },
+    "CONTROL-FILES": {
+      "status": "todo",
+      "commit": null,
+      "updated_at": null
+    },
+    "OPTIONAL-ADAPTERS": {
+      "status": "todo",
+      "commit": null,
+      "updated_at": null
+    }
   }
 }
