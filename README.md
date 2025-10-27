@@ -90,8 +90,8 @@ needed:
 - `GHIDRA_SERVER_URL` – Base URL of the Ghidra HTTP plugin (defaults to `http://127.0.0.1:8080/`).
 - `GHIDRA_MCP_ENABLE_WRITES` – Set to `true` to allow deterministic write operations; keep `false` unless audit logging is in
   place.
-- `GHIDRA_MCP_MAX_WRITES_PER_REQUEST` – Safety limit for how many write operations a deterministic request may perform.
-- `GHIDRA_MCP_MAX_ITEMS_PER_BATCH` – Maximum number of items processed per deterministic batch.
+- `GHIDRA_MCP_MAX_WRITES_PER_REQUEST` – Safety limit for how many write operations a deterministic request may perform (default: `2`).
+- `GHIDRA_MCP_MAX_ITEMS_PER_BATCH` – Maximum number of items processed per deterministic batch (default: `256`).
 - `MCP_MAX_LINES_SOFT`, `MCP_MAX_ITEMS_SOFT`, `MCP_MAX_ITEMS_HARD` – Legacy bridge safeguards controlling response truncation.
 - `UPDATE_GOLDEN_SNAPSHOTS` – Enable (`1`) to refresh golden files while developing tests.
 
