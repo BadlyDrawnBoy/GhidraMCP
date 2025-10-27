@@ -130,6 +130,10 @@ def _assert_valid(schema_name: str, payload: dict) -> None:
     assert valid, f"Schema validation failed: {errors}"
 
 
+def _assert_envelope(payload: dict) -> None:
+    _assert_valid("envelope.v1.json", payload)
+
+
 def test_jt_slot_check_contract(contract_client: TestClient) -> None:
     response = contract_client.post(
         "/api/jt_slot_check.json",
@@ -144,6 +148,7 @@ def test_jt_slot_check_contract(contract_client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["ok"] is True
+    _assert_envelope(body)
     _assert_valid("jt_slot_check.v1.json", body["data"])
 
 
@@ -164,6 +169,7 @@ def test_jt_slot_process_contract(contract_client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["ok"] is True
+    _assert_envelope(body)
     _assert_valid("jt_slot_process.v1.json", body["data"])
 
 
@@ -182,6 +188,7 @@ def test_jt_scan_contract(contract_client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["ok"] is True
+    _assert_envelope(body)
     data = body["data"]
     _assert_valid("jt_scan.v1.json", data)
     items = data["items"]
@@ -203,6 +210,7 @@ def test_string_xrefs_contract(contract_client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["ok"] is True
+    _assert_envelope(body)
     data = body["data"]
     _assert_valid("string_xrefs.v1.json", data)
     assert data["count"] == 8
@@ -218,4 +226,52 @@ def test_mmio_annotate_contract(contract_client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["ok"] is True
+    _assert_envelope(body)
     _assert_valid("mmio_annotate.v1.json", body["data"])
+
+
+@pytest.mark.parametrize(
+    "path,payload",
+    [
+        ("/api/jt_slot_check.json", {"jt_base": "0x1", "slot_index": 0, "code_min": "0x1", "code_max": "0x2", "extra": 1}),
+        (
+            "/api/jt_slot_process.json",
+            {
+                "jt_base": "0x1",
+                "slot_index": 0,
+                "code_min": "0x1",
+                "code_max": "0x2",
+                "rename_pattern": "slot_{slot}",
+                "comment": "hi",
+                "dry_run": True,
+                "extra": 1,
+            },
+        ),
+        (
+            "/api/jt_scan.json",
+            {
+                "jt_base": "0x1",
+                "start": 0,
+                "count": 4,
+                "code_min": "0x1",
+                "code_max": "0x2",
+                "extra": 1,
+            },
+        ),
+        (
+            "/api/string_xrefs.json",
+            {"string_addr": "0x2", "limit": 1, "extra": 1},
+        ),
+        (
+            "/api/mmio_annotate.json",
+            {"function_addr": "0x1", "dry_run": True, "max_samples": 2, "extra": 1},
+        ),
+    ],
+)
+def test_contract_rejects_additional_properties(contract_client: TestClient, path: str, payload: dict) -> None:
+    response = contract_client.post(path, json=payload)
+    assert response.status_code == 400
+    body = response.json()
+    _assert_envelope(body)
+    assert body["ok"] is False
+    assert body["errors"], "Expected schema validation errors"

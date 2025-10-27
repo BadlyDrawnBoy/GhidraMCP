@@ -6,6 +6,7 @@ from typing import Dict, List, Optional
 
 from ..adapters import ArchAdapter
 from ..ghidra.client import GhidraClient
+from ..utils.audit import record_jt_write
 from ..utils.config import ENABLE_WRITES
 from ..utils.errors import ErrorCode
 from ..utils.hex import int_to_hex, slot_address
@@ -147,6 +148,8 @@ def slot_process(
         result.errors.append(f"FORMAT_ERROR:{exc}")
         return result.to_dict()
     pre_meta = client.get_function_by_address(target_int)
+    pre_name = pre_meta.get("name") if isinstance(pre_meta, dict) else None
+    pre_comment = pre_meta.get("comment") if isinstance(pre_meta, dict) else None
     if not pre_meta:
         result.errors.append(ErrorCode.NO_FUNCTION_AT_TARGET.value)
         return result.to_dict()
@@ -161,11 +164,31 @@ def slot_process(
     else:
         result.errors.append(ErrorCode.WRITE_VERIFY_FAILED.value)
     meta = client.get_function_by_address(target_int)
+    post_name: Optional[str] = None
+    post_comment: Optional[str] = None
     if meta:
+        post_name = meta.get("name") if isinstance(meta, dict) else None
+        if isinstance(meta, dict):
+            post_comment = meta.get("comment")
         result.verify_name = meta.get("name")
         result.comment_present = bool(meta.get("comment")) if isinstance(meta, dict) else False
     else:
         result.errors.append(ErrorCode.WRITE_VERIFY_FAILED.value)
+    record_jt_write(
+        slot=result.slot,
+        slot_address=result.slot_addr,
+        function_address=target_int,
+        rename_from=pre_name,
+        rename_to=post_name,
+        rename_ok=result.renamed,
+        comment_from=pre_comment,
+        comment_to=post_comment,
+        comment_ok=result.comment_set,
+        verify_name=result.verify_name,
+        verify_comment_present=result.comment_present,
+        notes=result.notes,
+        errors=result.errors,
+    )
     return result.to_dict()
 
 

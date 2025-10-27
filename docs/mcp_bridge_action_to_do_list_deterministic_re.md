@@ -109,45 +109,53 @@
 15. ✅ **Structured request metrics everywhere** (MCP tools & HTTP)
     - Timings (read/disasm/verify), rate‑limit, MaxWrites=2, MaxItems=256
     - ✅ Request scopes now wrap every HTTP route and MCP tool, logging per-request timers and counters with a shared `request_id`; `GhidraClient` records read/disasm/verify counters with new unit coverage and the defaults enforce MaxWrites=2/MaxItems=256.
-16. ⬜️ **Write audit log**
+16. ✅ **Write audit log**
     - old→new name, comment diff, verify result
     - **DoD:** One audit entry per successful write.
+    - ✅ Added `bridge/utils/audit.py` JSONL writer with request metadata; `jt_slot_process` now records rename/comment diffs and verification state when writes succeed, and a unit test asserts the captured payload.
 
 ---
 
 ## 6) Tests & QA (extended)
 
-17. ⬜️ **Golden files** for typical JT cases
+17. ✅ **Golden files** for typical JT cases
     - instruction word, out‑of‑range, valid ARM, valid Thumb
     - **DoD:** Strict golden diffs.
-18. ⬜️ **Contract suite** for all new endpoints
+    - ✅ Added `bridge/tests/golden/test_jt_slot_golden.py` with JSON snapshots covering sentinel, range errors, ARM and Thumb successes stored in `jt_slot_cases.json`.
+18. ✅ **Contract suite** for all new endpoints
     - Envelope, `additionalProperties:false`, field types, limits
     - **DoD:** CI fails on schema drift.
-19. ⬜️ **Integration (mocked Ghidra)**
+    - ✅ Contract tests now validate the shared envelope schema and assert 400 responses when extra properties slip into deterministic request payloads.
+19. ✅ **Integration (mocked Ghidra)**
     - happy/edge/fail; timeouts
     - **DoD:** Reproducible mocks; time budgets respected.
+    - ✅ Added httpx `MockTransport` integration tests that cover successful, failing, and timeout scenarios for `GhidraClient` operations while reusing deterministic response scripts.
 
 ---
 
 ## 7) Orchestrator path (no LLM)
 
-20. ⬜️ **Parse‑only aggregator**
+20. ✅ **Parse‑only aggregator**
     - Extract first balanced `{…}`, JSON‑parse, schema‑check, build aggregate
     - **DoD:** NON\_JSON/INVALID\_SCHEMA → `ok:false` items; `summary` correct.
-21. ⬜️ **No context carry‑over**
+    - ✅ New `bridge/orchestrator/aggregator.py` surfaces `aggregate_transcripts` to pull JSON envelopes from transcripts, validate them, and compute per-code summaries with unit coverage for NON_JSON and INVALID_SCHEMA paths.
+21. ✅ **No context carry‑over**
     - Each task runs without history; deterministic behavior
     - **DoD:** E2E test: subagent chatter does not leak into the aggregate.
+    - ✅ Aggregator now inspects only per-task assistant messages (latest first) so quoted JSON from earlier chatter is ignored, with a regression test confirming isolation across transcripts.
 
 ---
 
 ## 8) Docs & ops
 
-22. ⬜️ **Update README**
+22. ✅ **Update README**
     - Bridge‑only approach, new endpoints, schemas, flags, limits, examples
     - **DoD:** Consistent project page; reproducible quickstart.
-23. ⬜️ **Release checklist**
+    - ✅ README now documents the deterministic endpoint matrix, audit logging toggle, and orchestrator aggregator while keeping the local run/test instructions current.
+23. ✅ **Release checklist**
     - Schema versioning (`…v1`), changelog, rollback path
     - **DoD:** Tag/release includes artifacts & migration notes.
+    - ✅ Added `docs/release_checklist.md` plus a running `docs/CHANGELOG.md` capturing the new audit/golden/integration/orchestrator work and release artefact steps including rollback guidance.
 
 ---
 

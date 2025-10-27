@@ -1,0 +1,42 @@
+{
+  "arm_valid": {
+    "errors": [],
+    "mode": "ARM",
+    "notes": [],
+    "raw": "0x00400208",
+    "slot": 2,
+    "slot_addr": "0x00400008",
+    "target": "0x00400208"
+  },
+  "instruction_word": {
+    "errors": [
+      "ARM_INSTRUCTION"
+    ],
+    "mode": "none",
+    "notes": [],
+    "raw": "0x00400200",
+    "slot": 0,
+    "slot_addr": "0x00400000",
+    "target": null
+  },
+  "out_of_range": {
+    "errors": [
+      "OUT_OF_RANGE"
+    ],
+    "mode": "none",
+    "notes": [],
+    "raw": "0x00402000",
+    "slot": 1,
+    "slot_addr": "0x00400004",
+    "target": null
+  },
+  "thumb_valid": {
+    "errors": [],
+    "mode": "Thumb",
+    "notes": [],
+    "raw": "0x0040020c",
+    "slot": 3,
+    "slot_addr": "0x0040000c",
+    "target": "0x0040020c"
+  }
+}
