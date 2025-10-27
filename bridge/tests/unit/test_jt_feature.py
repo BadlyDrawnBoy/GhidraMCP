@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
 from bridge.features import jt
+from bridge.utils.logging import request_scope
 
 
 @dataclass
@@ -187,6 +188,31 @@ def test_slot_process_performs_writes_and_verifies_results() -> None:
     assert result["verify"] == {"name": "new_7", "comment_present": True}
     assert client.rename_calls == [(0x400200, "new_7")]
     assert client.comment_calls == [(0x400200, "note")]
+
+
+def test_slot_process_records_write_counter() -> None:
+    client = StubClient(
+        read_result=0x400200,
+        metadata=[{"name": "orig_9"}, {"name": "new_9", "comment": "note"}],
+    )
+    adapter = StubAdapter(mode="ARM", target=0x400200)
+
+    with request_scope("jt_slot_process", max_writes=2) as ctx:
+        result = jt.slot_process(
+            client,
+            jt_base=0x400000,
+            slot_index=9,
+            code_min=0x400000,
+            code_max=0x500000,
+            rename_pattern="new_{slot}",
+            comment="note",
+            adapter=adapter,
+            dry_run=False,
+            writes_enabled=True,
+        )
+
+    assert result["errors"] == []
+    assert ctx.counters.get("writes") == 2
 
 
 def test_slot_process_aborts_when_pre_verify_missing() -> None:

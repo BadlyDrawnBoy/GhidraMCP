@@ -17,7 +17,9 @@ class WritesDisabledError(RuntimeError):
 
 
 _ADDRESS_RE = re.compile(r"^\s*([0-9A-Fa-f]+):\s*(.+?)\s*$")
-_HEX_RE = re.compile(r"0x[0-9a-fA-F]+")
+_LITERAL_IMMEDIATE_RE = re.compile(r"=\s*(-?0x[0-9a-fA-F]+)")
+_BRACKET_IMMEDIATE_RE = re.compile(r"\[[^\]]*#\s*(-?0x[0-9a-fA-F]+)")
+_HASH_IMMEDIATE_RE = re.compile(r"#\s*(-?0x[0-9a-fA-F]+)")
 
 
 @dataclass(slots=True)
@@ -54,9 +56,9 @@ def _parse_line(line: str) -> Optional[tuple[int, str, str]]:
 
 
 def _classify(mnemonic: str) -> Optional[str]:
-    if mnemonic.startswith("LD"):
+    if mnemonic.startswith("LDR"):
         return "READ"
-    if mnemonic.startswith("ST"):
+    if mnemonic.startswith("STR"):
         return "WRITE"
     if mnemonic.startswith("ORR") or mnemonic == "OR" or mnemonic.startswith("ORI"):
         return "OR"
@@ -68,13 +70,25 @@ def _classify(mnemonic: str) -> Optional[str]:
 
 
 def _extract_target(operands: str) -> Optional[int]:
-    match = _HEX_RE.search(operands)
-    if not match:
-        return None
-    try:
-        return int(match.group(0), 16)
-    except ValueError:
-        return None
+    literal = _LITERAL_IMMEDIATE_RE.search(operands)
+    if literal:
+        try:
+            return int(literal.group(1), 16)
+        except ValueError:
+            return None
+    bracket = _BRACKET_IMMEDIATE_RE.search(operands)
+    if bracket:
+        try:
+            return int(bracket.group(1), 16)
+        except ValueError:
+            return None
+    hash_match = _HASH_IMMEDIATE_RE.search(operands)
+    if hash_match:
+        try:
+            return int(hash_match.group(1), 16)
+        except ValueError:
+            return None
+    return None
 
 
 def _collect_operations(disassembly: Iterable[str]) -> List[_Operation]:
