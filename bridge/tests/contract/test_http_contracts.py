@@ -205,7 +205,7 @@ def test_string_xrefs_contract(contract_client: TestClient) -> None:
     assert body["ok"] is True
     data = body["data"]
     _assert_valid("string_xrefs.v1.json", data)
-    assert data["count"] == 4
+    assert data["count"] == 8
     assert len(data["callers"]) == 4
     assert data["callers"][0]["addr"] == "0x00100000"
 

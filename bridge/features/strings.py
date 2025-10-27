@@ -152,6 +152,7 @@ def xrefs_compact(client: GhidraClient, *, string_addr: int, limit: int = 50) ->
     increment_counter("strings.xrefs.calls")
     enforce_batch_limit(limit, counter="strings.xrefs.limit")
     refs = client.get_xrefs_to(string_addr, limit=limit)
+    total = len(refs)
     callers: List[Dict[str, object]] = []
     for ref in refs[:limit]:
         addr = ref.get("addr")
@@ -170,7 +171,11 @@ def xrefs_compact(client: GhidraClient, *, string_addr: int, limit: int = 50) ->
             entry["hint"] = hint
         callers.append(entry)
         increment_counter("strings.xrefs.callers")
-    return {"string": int_to_hex(string_addr), "count": len(callers), "callers": callers}
+    return {
+        "string": int_to_hex(string_addr),
+        "count": total,
+        "callers": callers,
+    }
 
 
 __all__ = ["xrefs_compact"]

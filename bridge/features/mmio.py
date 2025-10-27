@@ -20,6 +20,25 @@ _ADDRESS_RE = re.compile(r"^\s*([0-9A-Fa-f]+):\s*(.+?)\s*$")
 _LITERAL_IMMEDIATE_RE = re.compile(r"=\s*(-?0x[0-9a-fA-F]+)")
 _BRACKET_IMMEDIATE_RE = re.compile(r"\[[^\]]*#\s*(-?0x[0-9a-fA-F]+)")
 _HASH_IMMEDIATE_RE = re.compile(r"#\s*(-?0x[0-9a-fA-F]+)")
+_ARM_CONDITION_CODES = {
+    "EQ",
+    "NE",
+    "CS",
+    "HS",
+    "CC",
+    "LO",
+    "MI",
+    "PL",
+    "VS",
+    "VC",
+    "HI",
+    "LS",
+    "GE",
+    "LT",
+    "GT",
+    "LE",
+    "AL",
+}
 
 
 @dataclass(slots=True)
@@ -55,10 +74,19 @@ def _parse_line(line: str) -> Optional[tuple[int, str, str]]:
     return addr, mnemonic, operands
 
 
+def _is_base_load_store(mnemonic: str, base: str) -> bool:
+    if not mnemonic.startswith(base):
+        return False
+    suffix = mnemonic[len(base) :]
+    if not suffix:
+        return True
+    return suffix in _ARM_CONDITION_CODES
+
+
 def _classify(mnemonic: str) -> Optional[str]:
-    if mnemonic.startswith("LDR"):
+    if _is_base_load_store(mnemonic, "LDR"):
         return "READ"
-    if mnemonic.startswith("STR"):
+    if _is_base_load_store(mnemonic, "STR"):
         return "WRITE"
     if mnemonic.startswith("ORR") or mnemonic == "OR" or mnemonic.startswith("ORI"):
         return "OR"

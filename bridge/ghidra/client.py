@@ -21,6 +21,21 @@ ENDPOINT_CANDIDATES: Mapping[str, Iterable[str]] = {
     "GET_XREFS_TO": ("get_xrefs_to", "xrefs_to"),
 }
 
+POST_ENDPOINT_CANDIDATES: Mapping[str, Iterable[str]] = {
+    "RENAME_FUNCTION": (
+        "rename_function_by_address",
+        "renameFunctionByAddress",
+    ),
+    "SET_DECOMPILER_COMMENT": (
+        "set_decompiler_comment",
+        "setDecompilerComment",
+    ),
+    "SET_DISASSEMBLY_COMMENT": (
+        "set_disassembly_comment",
+        "setDisassemblyComment",
+    ),
+}
+
 
 @dataclass(slots=True)
 class EndpointResolver:
@@ -54,15 +69,21 @@ class EndpointRequester:
         *,
         key: str,
         params: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.client = client
         self.method = method
         self.key = key
         self.params = params or {}
+        self.data = data if data is not None else {}
 
     def request(self, path: str) -> List[str]:
         if self.method == "GET":
             return self.client._request_lines("GET", path, key=self.key, params=self.params)
+        if self.method == "POST":
+            return self.client._request_lines(
+                "POST", path, key=self.key, data=self.data
+            )
         raise ValueError(f"Unsupported method {self.method}")
 
 
@@ -85,7 +106,8 @@ class GhidraClient:
         self.timeout = timeout
         self._session = httpx.Client(timeout=timeout, transport=transport)
         self._whitelist = whitelist or DEFAULT_WHITELIST
-        self._resolver = EndpointResolver(ENDPOINT_CANDIDATES)
+        self._get_resolver = EndpointResolver(ENDPOINT_CANDIDATES)
+        self._post_resolver = EndpointResolver(POST_ENDPOINT_CANDIDATES)
 
     # ------------------------------------------------------------------
     # low level
@@ -155,7 +177,7 @@ class GhidraClient:
             key="DISASSEMBLE",
             params={"address": f"0x{address:08x}"},
         )
-        lines = self._resolver.resolve("DISASSEMBLE", requester)
+        lines = self._get_resolver.resolve("DISASSEMBLE", requester)
         return [] if _is_error(lines) else lines
 
     def get_function_by_address(self, address: int) -> Optional[FunctionMeta]:
@@ -165,7 +187,7 @@ class GhidraClient:
             key="FUNC_BY_ADDR",
             params={"address": f"0x{address:08x}"},
         )
-        lines = self._resolver.resolve("FUNC_BY_ADDR", requester)
+        lines = self._get_resolver.resolve("FUNC_BY_ADDR", requester)
         if _is_error(lines):
             return None
         meta: Dict[str, Any] = {}
@@ -196,7 +218,7 @@ class GhidraClient:
             key="GET_XREFS_TO",
             params={"address": f"0x{address:08x}", "limit": int(limit)},
         )
-        lines = self._resolver.resolve("GET_XREFS_TO", requester)
+        lines = self._get_resolver.resolve("GET_XREFS_TO", requester)
         if _is_error(lines):
             return []
         out: List[Xref] = []
@@ -214,29 +236,34 @@ class GhidraClient:
         return out
 
     def rename_function(self, address: int, new_name: str) -> bool:
-        response = self._request_lines(
+        requester = EndpointRequester(
+            self,
             "POST",
-            "rename_function_by_address",
             key="RENAME_FUNCTION",
             data={"function_address": f"0x{address:08x}", "new_name": new_name},
         )
+        response = self._post_resolver.resolve("RENAME_FUNCTION", requester)
         return not _is_error(response)
 
     def set_decompiler_comment(self, address: int, comment: str) -> bool:
-        response = self._request_lines(
+        requester = EndpointRequester(
+            self,
             "POST",
-            "set_decompiler_comment",
             key="SET_DECOMPILER_COMMENT",
             data={"address": f"0x{address:08x}", "comment": comment},
         )
+        response = self._post_resolver.resolve("SET_DECOMPILER_COMMENT", requester)
         return not _is_error(response)
 
     def set_disassembly_comment(self, address: int, comment: str) -> bool:
-        response = self._request_lines(
+        requester = EndpointRequester(
+            self,
             "POST",
-            "set_disassembly_comment",
             key="SET_DISASSEMBLY_COMMENT",
             data={"address": f"0x{address:08x}", "comment": comment},
+        )
+        response = self._post_resolver.resolve(
+            "SET_DISASSEMBLY_COMMENT", requester
         )
         return not _is_error(response)
 
@@ -250,4 +277,4 @@ class GhidraClient:
         self.close()
 
 
-__all__ = ["GhidraClient", "ENDPOINT_CANDIDATES"]
+__all__ = ["GhidraClient", "ENDPOINT_CANDIDATES", "POST_ENDPOINT_CANDIDATES"]
