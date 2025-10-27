@@ -123,3 +123,49 @@ def test_confirm_true_payload_is_rejected():
     )
 
     assert result == ["ERROR: endpoint POST rename_function_by_address not allowed"]
+
+
+def test_get_alias_resolution_is_cached():
+    requested_paths = []
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        requested_paths.append(request.url.path)
+        if request.url.path.endswith("disassemble"):
+            return httpx.Response(404, text="Not Found")
+        return httpx.Response(200, text="line1\n")
+
+    client = GhidraClient(
+        "https://example.test/api",
+        transport=_build_transport(handle),
+    )
+
+    assert client.disassemble_function(0x401000) == ["line1"]
+    assert client.disassemble_function(0x401000) == ["line1"]
+    assert requested_paths == [
+        "/api/disassemble",
+        "/api/disassemble_function",
+        "/api/disassemble_function",
+    ]
+
+
+def test_post_alias_resolution_is_cached():
+    requested_paths = []
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        requested_paths.append(request.url.path)
+        if request.url.path.endswith("rename_function_by_address"):
+            return httpx.Response(404, text="Not Found")
+        return httpx.Response(200, text="")
+
+    client = GhidraClient(
+        "https://example.test/api",
+        transport=_build_transport(handle),
+    )
+
+    assert client.rename_function(0x401000, "new_name") is True
+    assert client.rename_function(0x401000, "other_name") is True
+    assert requested_paths == [
+        "/api/rename_function_by_address",
+        "/api/renameFunctionByAddress",
+        "/api/renameFunctionByAddress",
+    ]

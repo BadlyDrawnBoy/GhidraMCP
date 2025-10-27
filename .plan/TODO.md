@@ -33,13 +33,15 @@
   - What changed: Added integration tests confirming OpenAPI availability and jt_slot_check envelope handling.
   - What changed: Verified MCP tool registration matches the required deterministic tool list.
 
-### 2) ⬜️ CLIENT-UNIFY — Single Ghidra client + whitelist (ID: CLIENT-UNIFY)
+### 2) ✅ CLIENT-UNIFY — Single Ghidra client + whitelist (ID: CLIENT-UNIFY)
 - One client module; **POST alias resolver** mirrors GET; cache aliases
 - Enforce whitelist: **allowed** `read_dword`, `disassemble_function`,
   `get_function_by_address`, `get_xrefs_to`, `rename_function_by_address`, `set_*comment`
   · **forbidden** `read_bytes`, `read_cstring`, any `list_*`, any `search_*`, any `confirm:true`
-- **DoD:** Unit tests show allowed pass, forbidden return a defined error  
-  _commit:_
+- **DoD:** Unit tests show allowed pass, forbidden return a defined error
+  _commit: 041845c_
+  - What changed: Added unit tests covering cached alias resolution for both GET and POST helpers.
+  - What changed: Confirmed whitelist blocks forbidden endpoints via defined error responses.
 
 ### 3) ⬜️ RANGE-CONTRACT — Enforce `[code_min, code_max)` (ID: RANGE-CONTRACT)
 - Adapter uses `< code_max`; docs/tests updated
