@@ -150,6 +150,7 @@ def make_routes(
             "jt_slot_process",
             logger=logger,
             extra={"path": "/api/jt_slot_process.json"},
+            max_writes=2,
         ):
             data, error = await _validated_json_body(
                 request, "jt_slot_process.request.v1.json"

@@ -9,6 +9,7 @@ from ..features import jt, mmio, strings
 from ..ghidra.client import GhidraClient
 from ..utils.config import ENABLE_WRITES
 from ..utils.errors import ErrorCode
+from ..utils.logging import SafetyLimitExceeded, request_scope
 from ..utils.hex import parse_hex
 from ._shared import adapter_for_arch, envelope_error, envelope_ok, with_client
 from .validators import validate_payload
@@ -60,18 +61,26 @@ def register_tools(
         arch: str = "auto",
     ) -> Dict[str, object]:
         adapter = adapter_for_arch(arch)
-        data = jt.slot_process(
-            client,
-            jt_base=parse_hex(jt_base),
-            slot_index=slot_index,
-            code_min=parse_hex(code_min),
-            code_max=parse_hex(code_max),
-            rename_pattern=rename_pattern,
-            comment=comment,
-            adapter=adapter,
-            dry_run=dry_run,
-            writes_enabled=enable_writes,
-        )
+        try:
+            with request_scope(
+                "jt_slot_process",
+                extra={"tool": "jt_slot_process"},
+                max_writes=2,
+            ):
+                data = jt.slot_process(
+                    client,
+                    jt_base=parse_hex(jt_base),
+                    slot_index=slot_index,
+                    code_min=parse_hex(code_min),
+                    code_max=parse_hex(code_max),
+                    rename_pattern=rename_pattern,
+                    comment=comment,
+                    adapter=adapter,
+                    dry_run=dry_run,
+                    writes_enabled=enable_writes,
+                )
+        except SafetyLimitExceeded as exc:
+            return envelope_error(ErrorCode.SAFETY_LIMIT, str(exc))
         valid, errors = validate_payload("jt_slot_process.v1.json", data)
         if not valid:
             return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
