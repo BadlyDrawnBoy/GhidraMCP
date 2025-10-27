@@ -152,7 +152,7 @@ def test_slot_check_thumb_candidate_verified(adapter: ARMThumbAdapter) -> None:
     assert result["target"] == "0x00002600"
     assert client.disassemble_calls[0] == thumb_ptr
     assert client.disassemble_calls[-1] == real_target
-    assert client.function_calls == [real_target]
+    assert client.function_calls == [thumb_ptr, real_target]
 
 
 def test_slot_check_accepts_lower_bound(adapter: ARMThumbAdapter) -> None:

@@ -31,7 +31,9 @@ class StubAdapter:
             return self.sentinel_values[raw]
         return self.sentinel
 
-    def probe_function(self, _client, ptr: int) -> tuple[Optional[str], Optional[int]]:
+    def probe_function(
+        self, _client, ptr: int, _code_min: int, _code_max: int
+    ) -> tuple[Optional[str], Optional[int]]:
         if ptr in self.probe_map:
             return self.probe_map[ptr]
         return self.mode, self.target

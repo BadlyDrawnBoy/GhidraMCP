@@ -48,13 +48,15 @@
 - **DoD:** Off-by-one at the upper bound covered by tests _commit: 6be4e76_
   - What changed: Added unit, contract, and golden coverage for jump-table slots equal to `code_max`.
 
-### 4) ⬜️ JT-VERIFY — Strict ARM/Thumb READ→VERIFY (ID: JT-VERIFY)
+### 4) ✅ JT-VERIFY — Strict ARM/Thumb READ→VERIFY (ID: JT-VERIFY)
 - Probe ARM at `ptr` and Thumb at `ptr-1` only if in range
 - Verify via `get_function_by_address` or `disassemble_function` before marking valid;
   else set `NO_FUNCTION_AT_TARGET`
 - Treat `0xE12FFF1C` as `ARM_INSTRUCTION`
-- **DoD:** Tests for instruction word, out-of-range, valid ARM, valid Thumb pass  
-  _commit:_
+- **DoD:** Tests for instruction word, out-of-range, valid ARM, valid Thumb pass
+  _commit: a46ccca_
+  - What changed: Tightened ARM/Thumb probing to respect range checks and require verified metadata for Thumb fallbacks.
+  - What changed: Updated adapter verification logic and tests to accept either disassembly or metadata while enforcing entry points.
 
 ### 5) ⬜️ JT-SCAN — Read-only batch scan (ID: JT-SCAN)
 - Implement `jt_scan` aggregating `slot_check`; correct `summary.total == items.length`
