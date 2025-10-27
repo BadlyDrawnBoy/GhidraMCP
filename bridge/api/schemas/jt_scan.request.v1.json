@@ -26,11 +26,13 @@
     },
     "code_min": {
       "type": "string",
-      "pattern": "^0x[0-9a-fA-F]+$"
+      "pattern": "^0x[0-9a-fA-F]+$",
+      "description": "Lower bound (inclusive) for valid code addresses."
     },
     "code_max": {
       "type": "string",
-      "pattern": "^0x[0-9a-fA-F]+$"
+      "pattern": "^0x[0-9a-fA-F]+$",
+      "description": "Upper bound (exclusive) for valid code addresses."
     },
     "arch": {
       "type": "string",

@@ -20,12 +20,14 @@ class ARMThumbAdapter(ArchAdapter):
         return raw in BX_SENTINELS
 
     def probe_function(self, client, ptr: int) -> tuple[str | None, int | None]:
-        candidates: list[tuple[str, int]] = []
-        if ptr % self.code_alignment == 0:
-            candidates.append(("ARM", ptr))
-        if ptr % self.code_alignment == 1 and ptr > 0:
+        candidates: list[tuple[str, int]] = [("ARM", ptr)]
+        if ptr & 1 and ptr > 0:
             candidates.append(("Thumb", ptr - 1))
+        seen: set[int] = set()
         for mode, target in candidates:
+            if target < 0 or target in seen:
+                continue
+            seen.add(target)
             if self._verify_candidate(client, target):
                 return mode, target
         return None, None

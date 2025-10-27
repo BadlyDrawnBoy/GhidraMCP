@@ -70,3 +70,36 @@ def test_mmio_annotate_sets_comments_when_writes_enabled(success):
     assert len(client.comments) == 2
     assert client.comments[0][0] == 0x00410000
     assert "MMIO" in client.comments[0][1]
+
+
+def test_mmio_annotate_skips_block_transfer_instructions():
+    disassembly = [
+        "00420000: LDM R0!, {R1, R2, R3}",
+        "00420004: STM R3!, {R4, R5}",
+        "00420008: LDR R0, [R1, #0x4200]",
+    ]
+    client = DummyClient(disassembly)
+
+    payload = mmio.annotate(client, function_addr=0x420000)
+
+    assert payload["reads"] == 1
+    assert payload["writes"] == 0
+    assert [sample["addr"] for sample in payload["samples"]] == ["0x00420008"]
+
+
+def test_mmio_annotate_extracts_literal_and_offset_targets():
+    disassembly = [
+        "00430000: LDR R0, =0x50000000",
+        "00430004: STR R0, [R1, #0x100]",
+        "00430008: LDR R2, [R3, R4]",
+        "0043000C: ORR R2, R2, #0x8",
+    ]
+    client = DummyClient(disassembly)
+
+    payload = mmio.annotate(client, function_addr=0x430000)
+
+    samples = {sample["addr"]: sample for sample in payload["samples"]}
+    assert samples["0x00430000"]["target"] == "0x50000000"
+    assert samples["0x00430004"]["target"] == "0x00000100"
+    assert samples["0x00430008"]["target"] == "0x00000000"
+    assert samples["0x0043000c"]["target"] == "0x00000008"

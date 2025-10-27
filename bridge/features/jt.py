@@ -76,11 +76,11 @@ def slot_check(
     if raw_val is None:
         result.errors.append(ErrorCode.TOOL_BINDING_MISSING.value)
         return result.to_dict()
-    if not adapter.in_code_range(raw_val, code_min, code_max):
-        result.errors.append(ErrorCode.OUT_OF_RANGE.value)
-        return result.to_dict()
     if adapter.is_instruction_sentinel(raw_val):
         result.errors.append(ErrorCode.ARM_INSTRUCTION.value)
+        return result.to_dict()
+    if not adapter.in_code_range(raw_val, code_min, code_max):
+        result.errors.append(ErrorCode.OUT_OF_RANGE.value)
         return result.to_dict()
     mode, target = adapter.probe_function(client, raw_val)
     if mode and target is not None:

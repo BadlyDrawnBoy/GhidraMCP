@@ -35,6 +35,10 @@ class GoldenStubGhidraClient:
             0x00102005: {"name": "thumb_stub", "comment": ""},
         }
         self._disassembly: Dict[int, List[str]] = {
+            0x00102004: [
+                "00102004: PUSH {r4, lr}",
+                "00102008: BL jump_table_target",
+            ],
             0x00005000: [
                 "00005000: BL log_debug",
                 "00005004: MOV R0, R1",
