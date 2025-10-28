@@ -71,13 +71,15 @@
 * *commit:* 2ed15d3*
 * **Run:** `python -m pytest -q bridge/tests/contract/test_schemas.py`
 
-### 8) ⬜ OBS-LIMITS — Observability & limits (ID: OBS-LIMITS)
+### 8) ✅ OBS-LIMITS — Observability & limits (ID: OBS-LIMITS)
 
 * Add `request_scope` metrics (request_id, timings, counters) + structured logs.
 * Enforce `GHIDRA_MCP_MAX_WRITES_PER_REQUEST`, `GHIDRA_MCP_MAX_ITEMS_PER_BATCH`, timeouts.
 * Audit JSONL when writes enabled (old→new name, comment diff, verify result).
-* **DoD:** `tests/obs/test_limits_and_audit.py` green; sample audit file created in tmp.
+* **DoD:** `tests/obs/test_limits_and_audit.py` green; sample audit file created in tmp. _commit: 08d9bd3_
 * **Run:** `python -m pytest -q bridge/tests/obs/test_limits_and_audit.py`
+
+  What changed: Added observability tests, wired request scopes to config-driven limits, and verified JT audit trail output.
 
 ### 9) ⬜ LEGACY-PARITY — Legacy API unchanged (ID: LEGACY-PARITY)
 
