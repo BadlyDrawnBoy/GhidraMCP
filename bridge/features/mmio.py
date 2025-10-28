@@ -130,6 +130,11 @@ def _collect_operations(disassembly: Iterable[str]) -> List[_Operation]:
         if not op:
             continue
         target = _extract_target(operands)
+        if op in {"READ", "WRITE"} and target is None:
+            # Skip load/store instructions that do not reference an immediate
+            # address. This filters out register-indirect accesses that are not
+            # indicative of MMIO heuristics.
+            continue
         operations.append(_Operation(addr=addr, op=op, target=target))
     return operations
 
