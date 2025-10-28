@@ -61,11 +61,12 @@
 * **DoD:** Unit tests show reduced false positives; contract schema `mmio_annotate.v1.json` satisfied.
 * **Run:** `python -m pytest -q bridge/tests/unit/test_mmio_heuristics.py`
 
-### 7) ⬜ SCHEMA-STRICT — Enforce schemas & envelope (ID: SCHEMA-STRICT)
+### 7) ✅ SCHEMA-STRICT — Enforce schemas & envelope (ID: SCHEMA-STRICT)
 
 * All HTTP endpoints & MCP tools return `{ok, data|null, errors[]}` with `additionalProperties:false`.
 * Negative tests (fehlende Felder) → 400 + envelope.
 * **DoD:** `tests/contract/test_schemas.py` passes for all `/api/*.json`.
+* *commit:* 2ed15d3*
 * **Run:** `python -m pytest -q bridge/tests/contract/test_schemas.py`
 
 ### 8) ⬜ OBS-LIMITS — Observability & limits (ID: OBS-LIMITS)
