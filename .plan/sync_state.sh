@@ -28,6 +28,15 @@ CLIENT_UNIFY_SHA=$(sha \
   bridge/tests/unit/test_ghidra_whitelist.py \
   bridge/client)
 
+SSE_HANDSHAKE_SHA=$(python3 - <<'PY'
+from pathlib import Path
+import re
+todo = Path('.plan/TODO.md').read_text(encoding='utf-8')
+m = re.search(r"SSE-HANDSHAKE.*?_commit:\s*([0-9a-f]+)_", todo, re.DOTALL)
+print(m.group(1) if m else(""))
+PY
+)
+
 # 2) Update .plan/state.json for found SHAs
 NOW=$(date -Iseconds)
 update() {
@@ -47,6 +56,7 @@ update JT-SCAN          "$JT_SCAN_SHA"
 update JT-VERIFY        "$JT_VERIFY_SHA"
 update RANGE-CONTRACT   "$RANGE_CONTRACT_SHA"
 update CLIENT-UNIFY     "$CLIENT_UNIFY_SHA"
+update SSE-HANDSHAKE    "$SSE_HANDSHAKE_SHA"
 
 echo
 echo "Current state:"
