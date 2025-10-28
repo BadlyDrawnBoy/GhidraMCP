@@ -12,6 +12,7 @@ class DummyAdapter:
         return False
 
     def probe_function(self, client, ptr: int, code_min: int, code_max: int):
+        # Simuliere validen Thumb-Treffer
         return "Thumb", ptr
 
 
@@ -46,6 +47,11 @@ class DummyJTClient:
         return True
 
 
+def _has_note(payload: dict, phrase: str) -> bool:
+    notes = payload.get("notes", [])
+    return any(phrase in note for note in notes)
+
+
 @pytest.mark.parametrize("dry_run", [True, False])
 def test_jt_slot_process_gates_writes_when_disabled(dry_run):
     client = DummyJTClient()
@@ -64,29 +70,22 @@ def test_jt_slot_process_gates_writes_when_disabled(dry_run):
         writes_enabled=False,
     )
 
+    # hat ein Wort gelesen
     assert client.read_addrs == [0x400004]
 
     if dry_run:
         assert payload["errors"] == []
         assert payload["verify"]["name"] == "func_401000"
+        assert _has_note(payload, "dry-run")
         assert client.rename_calls == 0
         assert client.comment_calls == 0
         assert client.meta_calls == 1
     else:
         assert payload["errors"] == [ErrorCode.WRITE_DISABLED_DRY_RUN.value]
         assert payload["writes"] == {"renamed": False, "comment_set": False}
+        assert _has_note(payload, "writes disabled")
         assert client.rename_calls == 0
         assert client.comment_calls == 0
-
-
-def test_mmio_annotate_raises_when_writes_disabled_and_dry_run_false():
-    with pytest.raises(mmio.WritesDisabledError):
-        mmio.annotate(
-            object(),
-            function_addr=0x500000,
-            dry_run=False,
-            writes_enabled=False,
-        )
 
 
 class DummyMMIOClient:
@@ -97,8 +96,21 @@ class DummyMMIOClient:
         self.calls.append(address)
         return ["00500000: NOP"]
 
-    def set_disassembly_comment(self, address, comment):  # pragma: no cover - not used here
+    def set_disassembly_comment(self, address, comment):
         return True
+
+
+def test_mmio_annotate_returns_note_when_writes_disabled_and_dry_run_false():
+    payload = mmio.annotate(
+        DummyMMIOClient(),
+        function_addr=0x500000,
+        dry_run=False,
+        writes_enabled=False,
+    )
+
+    assert payload["annotated"] == 0
+    assert payload["notes"]
+    assert any("writes disabled" in note for note in payload["notes"])
 
 
 def test_mmio_annotate_allows_dry_run_with_writes_disabled():
@@ -115,3 +127,4 @@ def test_mmio_annotate_allows_dry_run_with_writes_disabled():
     assert payload["annotated"] == 0
     assert payload["samples"] == []
     assert client.calls == [0x500000]
+    assert any("dry-run" in note for note in payload["notes"])

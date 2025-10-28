@@ -51,7 +51,9 @@
     "data": {
       "errors": [],
       "mode": "ARM",
-      "notes": [],
+      "notes": [
+        "dry-run requested: no modifications were performed"
+      ],
       "raw": "0x00102004",
       "slot": 0,
       "slot_addr": "0x00100000",
@@ -95,6 +97,9 @@
       "bitwise_and": 1,
       "bitwise_or": 1,
       "function": "0x00007000",
+      "notes": [
+        "dry-run requested: annotations were not applied"
+      ],
       "reads": 1,
       "samples": [
         {

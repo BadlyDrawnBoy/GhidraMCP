@@ -92,6 +92,15 @@ def slot_check(
     return result.to_dict()
 
 
+_NOTE_WRITES_DISABLED = "writes disabled: no modifications were performed"
+_NOTE_DRY_RUN = "dry-run requested: no modifications were performed"
+
+
+def _append_note(notes: List[str], message: str) -> None:
+    if message not in notes:
+        notes.append(message)
+
+
 def slot_process(
     client: GhidraClient,
     *,
@@ -133,6 +142,7 @@ def slot_process(
         return result.to_dict()
     if not dry_run and not writes_enabled:
         result.errors.append(ErrorCode.WRITE_DISABLED_DRY_RUN.value)
+        _append_note(result.notes, _NOTE_WRITES_DISABLED)
         return result.to_dict()
     target_int = int(result.target, 16)
     if result.mode not in {"ARM", "Thumb"}:
@@ -141,6 +151,9 @@ def slot_process(
     if dry_run:
         meta = client.get_function_by_address(target_int)
         result.verify_name = meta.get("name") if meta else None
+        if not writes_enabled:
+            _append_note(result.notes, _NOTE_WRITES_DISABLED)
+        _append_note(result.notes, _NOTE_DRY_RUN)
         return result.to_dict()
     try:
         new_name = rename_pattern.format(slot=result.slot, target=result.target)
