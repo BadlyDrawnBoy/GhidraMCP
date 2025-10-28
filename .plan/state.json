@@ -7,33 +7,33 @@
   "tasks": {
     "API-MOUNT": {
       "status": "done",
-      "commit": "05dd4ae",
-      "updated_at": "2025-10-28T00:41:13+01:00"
+      "commit": "2ed15d3",
+      "updated_at": "2025-10-28T01:01:35+00:00"
     },
     "CLIENT-UNIFY": {
       "status": "done",
       "commit": "2d3b1d0",
-      "updated_at": "2025-10-28T00:41:13+01:00"
+      "updated_at": "2025-10-28T01:01:35+00:00"
     },
     "RANGE-CONTRACT": {
       "status": "done",
       "commit": "844252e",
-      "updated_at": "2025-10-28T00:41:13+01:00"
+      "updated_at": "2025-10-28T01:01:35+00:00"
     },
     "JT-VERIFY": {
       "status": "done",
       "commit": "844252e",
-      "updated_at": "2025-10-28T00:41:13+01:00"
+      "updated_at": "2025-10-28T01:01:35+00:00"
     },
     "JT-SCAN": {
       "status": "done",
-      "commit": "844252e",
-      "updated_at": "2025-10-28T00:41:13+01:00"
+      "commit": "2ed15d3",
+      "updated_at": "2025-10-28T01:01:35+00:00"
     },
     "MMIO-HEUR": {
-      "status": "todo",
-      "commit": null,
-      "updated_at": null
+      "status": "done",
+      "commit": "641ecf7",
+      "updated_at": "2025-10-28T01:02:33+00:00"
     },
     "SCHEMA-STRICT": {
       "status": "done",

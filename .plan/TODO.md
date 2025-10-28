@@ -54,12 +54,14 @@
 * **DoD:** 16-slot contract test passes; `summary.total == len(items)`.
 * *commit:* (already set)
 
-### 6) ⬜ MMIO-HEUR — Precise MMIO heuristics (ID: MMIO-HEUR)
+### 6) ✅ MMIO-HEUR — Precise MMIO heuristics (ID: MMIO-HEUR)
 
 * Count only `LDR`/`STR`; ignore `LDM/STM`; extract from `[#imm]` or `=imm`.
 * Respect `dry_run` & `ENABLE_WRITES=false`.
-* **DoD:** Unit tests show reduced false positives; contract schema `mmio_annotate.v1.json` satisfied.
+* **DoD:** Unit tests show reduced false positives; contract schema `mmio_annotate.v1.json` satisfied. _commit: 641ecf7_
 * **Run:** `python -m pytest -q bridge/tests/unit/test_mmio_heuristics.py`
+
+  What changed: Filtered MMIO counts to immediate load/stores and added targeted heuristics tests.
 
 ### 7) ✅ SCHEMA-STRICT — Enforce schemas & envelope (ID: SCHEMA-STRICT)
 
