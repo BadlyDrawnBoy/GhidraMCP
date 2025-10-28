@@ -120,5 +120,5 @@ def test_mmio_annotate_extracts_literal_and_offset_targets():
     samples = {sample["addr"]: sample for sample in payload["samples"]}
     assert samples["0x00430000"]["target"] == "0x50000000"
     assert samples["0x00430004"]["target"] == "0x00000100"
-    assert samples["0x00430008"]["target"] == "0x00000000"
+    assert "0x00430008" not in samples
     assert samples["0x0043000c"]["target"] == "0x00000008"
