@@ -113,10 +113,11 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 **Notes:** Add explicit unit tests using env patching/fixture; do not enable writes by default.
 **What changed:** Added assertions ensuring dry-run or writes-disabled flows never invoke `record_write_attempt`, while the enabled path still records both rename and comment attempts.
 
-### 15) ⬜ SSE-HANDSHAKE — Minimal /sse stream health (ID: SSE-HANDSHAKE)
+### 15) ✅ SSE-HANDSHAKE — Minimal /sse stream health (ID: SSE-HANDSHAKE)
 **Goal:** Catch wiring regressions the in-process registration can’t see.
-**DoD:** Async test connects to `/sse` and receives at least one valid event frame (heartbeat or welcome). Clean shutdown.
+**DoD:** Async test connects to `/sse` and receives at least one valid event frame (heartbeat or welcome). Clean shutdown. _commit: 891692b_
 **Run:** `python -m pytest -q bridge/tests/integration/test_sse_handshake.py`
+**What changed:** Added an ASGI-level integration test that drives the FastMCP SSE app and asserts the endpoint event frame.
 
 ### 16) ⬜ JT-SCAN-CONSISTENCY — Hard invariants asserted (ID: JT-SCAN-CONSISTENCY)
 **Goal:** Guard against accidental summary drift or snapshot-only coverage.
