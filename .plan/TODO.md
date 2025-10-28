@@ -81,11 +81,13 @@
 
   What changed: Added observability tests, wired request scopes to config-driven limits, and verified JT audit trail output.
 
-### 9) ⬜ LEGACY-PARITY — Legacy API unchanged (ID: LEGACY-PARITY)
+### 9) ✅ LEGACY-PARITY — Legacy API unchanged (ID: LEGACY-PARITY)
 
 * Golden tests for selected legacy routes + shell probe.
-* **DoD:** Golden + probe green; no response drift.
+* **DoD:** Golden + probe green; no response drift. _commit: a041fe6_
 * **Run:** `python -m pytest -q bridge/tests/golden/test_legacy_apis.py && scripts/probe_legacy.sh`
+
+  What changed: Added golden snapshots for legacy shim routes and a probe script to assert responses stay stable.
 
 ### 10) ⬜ CI-TESTS — Gate builds on tests (ID: CI-TESTS)
 

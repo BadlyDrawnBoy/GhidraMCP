@@ -1,0 +1,53 @@
+{
+  "openapi_get": {
+    "info": {
+      "title": "Ghidra MCP Bridge (stub)",
+      "version": "0.1"
+    },
+    "openapi": "3.1.0",
+    "x-openwebui-mcp": {
+      "messages_url": "/messages",
+      "sse_url": "/sse",
+      "transport": "sse"
+    }
+  },
+  "openapi_post": {
+    "id": 123,
+    "jsonrpc": "2.0",
+    "result": {
+      "capabilities": {
+        "experimental": {},
+        "prompts": {
+          "listChanged": false
+        },
+        "resources": {
+          "listChanged": false,
+          "subscribe": false
+        },
+        "tools": {
+          "listChanged": false
+        }
+      },
+      "protocolVersion": "2025-06-18",
+      "serverInfo": {
+        "name": "ghidra-mcp",
+        "version": "1.14.1"
+      }
+    }
+  },
+  "health_get": {
+    "endpoints": {
+      "messages": "/messages",
+      "sse": "/sse"
+    },
+    "ok": true,
+    "type": "mcp-sse"
+  },
+  "root_post": {
+    "id": 0,
+    "jsonrpc": "2.0",
+    "result": {
+      "ok": true
+    }
+  }
+}
