@@ -69,24 +69,34 @@ def test_jt_slot_process_gates_writes_when_disabled(dry_run):
     if dry_run:
         assert payload["errors"] == []
         assert payload["verify"]["name"] == "func_401000"
+        assert _has_note(payload, "dry-run")
         assert client.rename_calls == 0
         assert client.comment_calls == 0
         assert client.meta_calls == 1
     else:
         assert payload["errors"] == [ErrorCode.WRITE_DISABLED_DRY_RUN.value]
         assert payload["writes"] == {"renamed": False, "comment_set": False}
+        assert _has_note(payload, "writes disabled")
         assert client.rename_calls == 0
         assert client.comment_calls == 0
 
 
-def test_mmio_annotate_raises_when_writes_disabled_and_dry_run_false():
-    with pytest.raises(mmio.WritesDisabledError):
-        mmio.annotate(
-            object(),
-            function_addr=0x500000,
-            dry_run=False,
-            writes_enabled=False,
-        )
+def _has_note(payload: dict, phrase: str) -> bool:
+    notes = payload.get("notes", [])
+    return any(phrase in note for note in notes)
+
+
+def test_mmio_annotate_returns_note_when_writes_disabled_and_dry_run_false():
+    payload = mmio.annotate(
+        object(),
+        function_addr=0x500000,
+        dry_run=False,
+        writes_enabled=False,
+    )
+
+    assert payload["annotated"] == 0
+    assert payload["notes"]
+    assert any("writes disabled" in note for note in payload["notes"])
 
 
 class DummyMMIOClient:
@@ -115,3 +125,4 @@ def test_mmio_annotate_allows_dry_run_with_writes_disabled():
     assert payload["annotated"] == 0
     assert payload["samples"] == []
     assert client.calls == [0x500000]
+    assert any("dry-run" in note for note in payload["notes"])

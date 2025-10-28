@@ -24,6 +24,10 @@
           "target": {"type": "string", "pattern": "^0x[0-9a-fA-F]+$"}
         }
       }
+    },
+    "notes": {
+      "type": "array",
+      "items": {"type": "string"}
     }
   }
 }

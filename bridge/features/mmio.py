@@ -12,10 +12,6 @@ from ..utils.hex import int_to_hex
 from ..utils.logging import enforce_batch_limit, increment_counter, record_write_attempt
 
 
-class WritesDisabledError(RuntimeError):
-    """Raised when a write is requested but writes are disabled."""
-
-
 _ADDRESS_RE = re.compile(r"^\s*([0-9A-Fa-f]+):\s*(.+?)\s*$")
 _LITERAL_IMMEDIATE_RE = re.compile(r"=\s*(-?0x[0-9a-fA-F]+)")
 _BRACKET_IMMEDIATE_RE = re.compile(r"\[[^\]]*#\s*(-?0x[0-9a-fA-F]+)")
@@ -139,6 +135,14 @@ def _collect_operations(disassembly: Iterable[str]) -> List[_Operation]:
     return operations
 
 
+_NOTE_WRITES_DISABLED = "writes disabled: annotations were not applied"
+_NOTE_DRY_RUN = "dry-run requested: annotations were not applied"
+
+
+class WritesDisabledError(RuntimeError):
+    """Retained for backwards compatibility (no longer raised)."""
+
+
 def annotate(
     client: GhidraClient,
     *,
@@ -148,8 +152,6 @@ def annotate(
     writes_enabled: bool = ENABLE_WRITES,
 ) -> Dict[str, object]:
     increment_counter("mmio.annotate.calls")
-    if not dry_run and not writes_enabled:
-        raise WritesDisabledError(ErrorCode.WRITE_DISABLED_DRY_RUN.value)
 
     enforce_batch_limit(max_samples, counter="mmio.max_samples")
     disassembly = client.disassemble_function(function_addr)
@@ -165,7 +167,12 @@ def annotate(
     increment_counter("mmio.operations.total", len(operations))
     increment_counter("mmio.samples.returned", len(samples))
 
+    notes: List[str] = []
     annotated = 0
+    if dry_run:
+        notes.append(_NOTE_DRY_RUN)
+    if not writes_enabled:
+        notes.append(_NOTE_WRITES_DISABLED)
     if not dry_run and writes_enabled and samples:
         for op in operations[:max_samples]:
             comment = _format_comment(op)
@@ -182,6 +189,7 @@ def annotate(
         "toggles": toggles,
         "annotated": annotated,
         "samples": samples,
+        "notes": notes,
     }
 
 

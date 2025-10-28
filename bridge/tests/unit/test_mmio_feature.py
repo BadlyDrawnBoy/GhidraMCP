@@ -47,6 +47,8 @@ def test_mmio_annotate_collects_counts_and_samples():
         "TOGGLE",
     ]
     assert client.requested == [0x400000]
+    assert "dry-run" in " ".join(payload["notes"])
+    assert "writes disabled" in " ".join(payload["notes"])
 
 
 @pytest.mark.parametrize("success", [True, False])
@@ -70,6 +72,7 @@ def test_mmio_annotate_sets_comments_when_writes_enabled(success):
     assert len(client.comments) == 2
     assert client.comments[0][0] == 0x00410000
     assert "MMIO" in client.comments[0][1]
+    assert payload["notes"] == []
 
 
 def test_mmio_annotate_skips_block_transfer_instructions():
@@ -85,6 +88,7 @@ def test_mmio_annotate_skips_block_transfer_instructions():
     assert payload["reads"] == 1
     assert payload["writes"] == 0
     assert [sample["addr"] for sample in payload["samples"]] == ["0x00420008"]
+    assert "dry-run" in " ".join(payload["notes"])
 
 
 def test_mmio_annotate_ignores_byte_and_halfword_variants():
@@ -104,6 +108,7 @@ def test_mmio_annotate_ignores_byte_and_halfword_variants():
         "0x00425008",
         "0x0042500c",
     ]
+    assert "dry-run" in " ".join(payload["notes"])
 
 
 def test_mmio_annotate_extracts_literal_and_offset_targets():
@@ -122,3 +127,4 @@ def test_mmio_annotate_extracts_literal_and_offset_targets():
     assert samples["0x00430004"]["target"] == "0x00000100"
     assert "0x00430008" not in samples
     assert samples["0x0043000c"]["target"] == "0x00000008"
+    assert "dry-run" in " ".join(payload["notes"])
