@@ -36,9 +36,9 @@
       "updated_at": null
     },
     "SCHEMA-STRICT": {
-      "status": "todo",
-      "commit": null,
-      "updated_at": null
+      "status": "done",
+      "commit": "2ed15d3",
+      "updated_at": "2025-10-28T01:21:10+01:00"
     },
     "OBS-LIMITS": {
       "status": "todo",
