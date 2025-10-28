@@ -124,7 +124,9 @@ def _post(client: TestClient, path: str, payload: dict[str, object]) -> dict[str
     return response.json()
 
 
-def test_jt_slot_process_dry_run_returns_note(_patch_adapter) -> None:
+def test_jt_slot_process_dry_run_returns_note(_patch_adapter, monkeypatch) -> None:
+    attempts: list[None] = []
+    monkeypatch.setattr(jt, "record_write_attempt", lambda: attempts.append(None))
     factory = RecordingJTFactory()
     app = Starlette(routes=make_routes(factory, enable_writes=True))
     with TestClient(app) as http:
@@ -149,9 +151,14 @@ def test_jt_slot_process_dry_run_returns_note(_patch_adapter) -> None:
     assert any("dry-run" in note for note in data["notes"])
     assert client.rename_calls == []
     assert client.comment_calls == []
+    assert attempts == []
 
 
-def test_jt_slot_process_writes_disabled_reports_note(_patch_adapter) -> None:
+def test_jt_slot_process_writes_disabled_reports_note(
+    _patch_adapter, monkeypatch
+) -> None:
+    attempts: list[None] = []
+    monkeypatch.setattr(jt, "record_write_attempt", lambda: attempts.append(None))
     factory = RecordingJTFactory()
     app = Starlette(routes=make_routes(factory, enable_writes=False))
     with TestClient(app) as http:
@@ -177,12 +184,15 @@ def test_jt_slot_process_writes_disabled_reports_note(_patch_adapter) -> None:
     assert any("writes disabled" in note for note in data["notes"])
     assert client.rename_calls == []
     assert client.comment_calls == []
+    assert attempts == []
 
 
 def test_jt_slot_process_writes_enabled_records_audit(_patch_adapter, monkeypatch) -> None:
     factory = RecordingJTFactory()
     calls: list[dict[str, object]] = []
+    attempts: list[None] = []
     monkeypatch.setattr(jt, "record_jt_write", lambda **kwargs: calls.append(kwargs))
+    monkeypatch.setattr(jt, "record_write_attempt", lambda: attempts.append(None))
 
     app = Starlette(routes=make_routes(factory, enable_writes=True))
     with TestClient(app) as http:
@@ -210,9 +220,12 @@ def test_jt_slot_process_writes_enabled_records_audit(_patch_adapter, monkeypatc
     assert client.comment_calls
     assert len(calls) == 1
     assert calls[0]["slot"] == 1
+    assert attempts == [None, None]
 
 
-def test_mmio_dry_run_reports_note() -> None:
+def test_mmio_dry_run_reports_note(monkeypatch) -> None:
+    attempts: list[None] = []
+    monkeypatch.setattr(mmio, "record_write_attempt", lambda amount=1: attempts.append(None))
     factory = RecordingMMIOFactory()
     app = Starlette(routes=make_routes(factory, enable_writes=True))
     with TestClient(app) as http:
@@ -226,9 +239,12 @@ def test_mmio_dry_run_reports_note() -> None:
 
     assert any("dry-run" in note for note in data["notes"])
     assert client.comments == []
+    assert attempts == []
 
 
-def test_mmio_writes_disabled_reports_note() -> None:
+def test_mmio_writes_disabled_reports_note(monkeypatch) -> None:
+    attempts: list[None] = []
+    monkeypatch.setattr(mmio, "record_write_attempt", lambda amount=1: attempts.append(None))
     factory = RecordingMMIOFactory()
     app = Starlette(routes=make_routes(factory, enable_writes=False))
     with TestClient(app) as http:
@@ -243,6 +259,7 @@ def test_mmio_writes_disabled_reports_note() -> None:
     assert any("writes disabled" in note for note in data["notes"])
     assert data["annotated"] == 0
     assert client.comments == []
+    assert attempts == []
 
 
 def test_mmio_writes_enabled_records_comments(monkeypatch) -> None:

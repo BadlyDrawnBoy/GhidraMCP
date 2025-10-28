@@ -106,12 +106,12 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 ### 14) ✅ WRITE-GUARDS — Writes disabled/enabled behave correctly (ID: WRITE-GUARDS)
 **Goal:** Prove that write-capable endpoints honor `ENABLE_WRITES`/`dry_run`.
 **Scope:** `jt_slot_process`, `mmio_annotate` (and any other write path).
-**DoD:** _commit: 2722ff5
+**DoD:** _commit: 9ebb00f
 - With `ENABLE_WRITES=false` or `dry_run=true`: no write attempts; response is 200 with deterministic envelope and an explanatory note.
 - With `ENABLE_WRITES=true` & `dry_run=false`: write path is exercised; audit/log hook is hit (if present).
 **Run:** `python -m pytest -q bridge/tests/unit/test_write_guards.py`
 **Notes:** Add explicit unit tests using env patching/fixture; do not enable writes by default.
-**What changed:** Backfilled plan metadata to commit 2722ff5 and re-verified write-guard behaviour with the dedicated unit suite.
+**What changed:** Added assertions ensuring dry-run or writes-disabled flows never invoke `record_write_attempt`, while the enabled path still records both rename and comment attempts.
 
 ### 15) ⬜ SSE-HANDSHAKE — Minimal /sse stream health (ID: SSE-HANDSHAKE)
 **Goal:** Catch wiring regressions the in-process registration can’t see.
