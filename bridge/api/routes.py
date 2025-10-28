@@ -13,7 +13,7 @@ from starlette.routing import Route
 
 from ..features import jt, mmio, strings
 from ..ghidra.client import GhidraClient
-from ..utils.config import ENABLE_WRITES
+from ..utils.config import ENABLE_WRITES, MAX_WRITES_PER_REQUEST
 from ..utils.errors import ErrorCode
 from ..utils.hex import parse_hex
 from ..utils.logging import SafetyLimitExceeded, request_scope
@@ -150,7 +150,7 @@ def make_routes(
             "jt_slot_process",
             logger=logger,
             extra={"path": "/api/jt_slot_process.json"},
-            max_writes=2,
+            max_writes=MAX_WRITES_PER_REQUEST,
         ):
             data, error = await _validated_json_body(
                 request, "jt_slot_process.request.v1.json"
