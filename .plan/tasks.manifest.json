@@ -1,18 +1,137 @@
 {
   "version": 1,
   "sequence": [
-    {"id":"API-MOUNT","title":"Mount deterministic routes & register MCP tools","after":[]},
-    {"id":"CLIENT-UNIFY","title":"Unify Ghidra client + whitelist","after":["API-MOUNT"]},
-    {"id":"RANGE-CONTRACT","title":"[min,max) range enforcement","after":["CLIENT-UNIFY"]},
-    {"id":"JT-VERIFY","title":"Strict ARM/Thumb READ→VERIFY","after":["RANGE-CONTRACT"]},
-    {"id":"JT-SCAN","title":"Read-only batch scan","after":["JT-VERIFY"]},
-    {"id":"MMIO-HEUR","title":"Precise MMIO heuristics","after":["JT-VERIFY"]},
-    {"id":"SCHEMA-STRICT","title":"Strict schemas + envelope","after":["JT-SCAN","MMIO-HEUR"]},
-    {"id":"OBS-LIMITS","title":"Observability & limits","after":["SCHEMA-STRICT"]},
-    {"id":"LEGACY-PARITY","title":"Prove old APIs unchanged","after":["OBS-LIMITS"]},
-    {"id":"CI-TESTS","title":"Run tests before packaging","after":["LEGACY-PARITY"]},
-    {"id":"DOCS-BOOTSTRAP","title":"Developer docs & artifacts","after":["CI-TESTS"]},
-    {"id":"CONTROL-FILES","title":"Repo control files for Codex sessions","after":["DOCS-BOOTSTRAP"]},
-    {"id":"OPTIONAL-ADAPTERS","title":"Additional ArchAdapters","after":["CONTROL-FILES"]}
+    {
+      "id": "API-MOUNT",
+      "title": "Mount deterministic routes & register MCP tools",
+      "after": []
+    },
+    {
+      "id": "CLIENT-UNIFY",
+      "title": "Unify Ghidra client + whitelist",
+      "after": [
+        "API-MOUNT"
+      ]
+    },
+    {
+      "id": "RANGE-CONTRACT",
+      "title": "[min,max) range enforcement",
+      "after": [
+        "CLIENT-UNIFY"
+      ]
+    },
+    {
+      "id": "JT-VERIFY",
+      "title": "Strict ARM/Thumb READ→VERIFY",
+      "after": [
+        "RANGE-CONTRACT"
+      ]
+    },
+    {
+      "id": "JT-SCAN",
+      "title": "Read-only batch scan",
+      "after": [
+        "JT-VERIFY"
+      ]
+    },
+    {
+      "id": "MMIO-HEUR",
+      "title": "Precise MMIO heuristics",
+      "after": [
+        "JT-VERIFY"
+      ]
+    },
+    {
+      "id": "SCHEMA-STRICT",
+      "title": "Strict schemas + envelope",
+      "after": [
+        "JT-SCAN",
+        "MMIO-HEUR"
+      ]
+    },
+    {
+      "id": "OBS-LIMITS",
+      "title": "Observability & limits",
+      "after": [
+        "SCHEMA-STRICT"
+      ]
+    },
+    {
+      "id": "LEGACY-PARITY",
+      "title": "Prove old APIs unchanged",
+      "after": [
+        "OBS-LIMITS"
+      ]
+    },
+    {
+      "id": "CI-TESTS",
+      "title": "Run tests before packaging",
+      "after": [
+        "LEGACY-PARITY"
+      ]
+    },
+    {
+      "id": "DOCS-BOOTSTRAP",
+      "title": "Developer docs & artifacts",
+      "after": [
+        "CI-TESTS"
+      ]
+    },
+    {
+      "id": "CONTROL-FILES",
+      "title": "Repo control files for Codex sessions",
+      "after": [
+        "DOCS-BOOTSTRAP"
+      ]
+    },
+    {
+      "id": "OPTIONAL-ADAPTERS",
+      "title": "Additional ArchAdapters",
+      "after": [
+        "CONTROL-FILES"
+      ]
+    },
+    {
+      "id": "WRITE-GUARDS",
+      "title": "Write guards on endpoints",
+      "after": [
+        "SCHEMA-STRICT"
+      ]
+    },
+    {
+      "id": "SSE-HANDSHAKE",
+      "title": "SSE handshake test",
+      "after": [
+        "API-MOUNT"
+      ]
+    },
+    {
+      "id": "JT-SCAN-CONSISTENCY",
+      "title": "JT summary invariants",
+      "after": [
+        "JT-SCAN"
+      ]
+    },
+    {
+      "id": "STRINGS-ASSERTS",
+      "title": "Strings feature asserts",
+      "after": [
+        "CLIENT-UNIFY"
+      ]
+    },
+    {
+      "id": "SNAPSHOT-SAFEGUARD",
+      "title": "Non-golden safeguards",
+      "after": [
+        "SCHEMA-STRICT"
+      ]
+    },
+    {
+      "id": "PLAN-CHECK",
+      "title": "Plan consistency script + CI",
+      "after": [
+        "SCHEMA-STRICT"
+      ]
+    }
   ]
 }

@@ -1,0 +1,14 @@
+name: Plan Consistency
+on:
+  pull_request:
+    paths:
+      - ".plan/**"
+      - "bin/plan_check.py"
+      - ".github/workflows/plan-check.yml"
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run plan check
+        run: python3 bin/plan_check.py

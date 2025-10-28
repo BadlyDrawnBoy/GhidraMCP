@@ -18,7 +18,6 @@ out/
 .project
 .classpath
 .settings/
-bin/
 
 # VS Code
 .vscode/

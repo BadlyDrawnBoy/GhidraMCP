@@ -69,6 +69,36 @@
       "status": "todo",
       "commit": null,
       "updated_at": null
+    },
+    "WRITE-GUARDS": {
+      "status": "todo",
+      "commit": null,
+      "updated_at": null
+    },
+    "SSE-HANDSHAKE": {
+      "status": "todo",
+      "commit": null,
+      "updated_at": null
+    },
+    "JT-SCAN-CONSISTENCY": {
+      "status": "todo",
+      "commit": null,
+      "updated_at": null
+    },
+    "STRINGS-ASSERTS": {
+      "status": "todo",
+      "commit": null,
+      "updated_at": null
+    },
+    "SNAPSHOT-SAFEGUARD": {
+      "status": "todo",
+      "commit": null,
+      "updated_at": null
+    },
+    "PLAN-CHECK": {
+      "status": "todo",
+      "commit": null,
+      "updated_at": null
     }
   }
 }

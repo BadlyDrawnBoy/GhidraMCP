@@ -1,116 +1,141 @@
-> **Codex – Session Protocol (read this first, every time)**
->
-> This file is the **single source of truth**. Work one task per run.
+# Codex Session Protocol (read this first, every run)
 
-**How to proceed**
+**This file is the single source of truth.** One task per run. Always **read _and_ update this file** and keep `/.plan/state.json` in sync.
 
-1. Read this `/.plan/TODO.md`. If `/.plan/tasks.manifest.json` exists, respect its `sequence`/`after` order; otherwise use the order here.
-2. Pick the **first** item marked ⬜️ (todo). If it is already satisfied by the current code, mark ✅ with a one-line note and continue to the next run.
-3. Implement **only** what this task’s DoD requires. Keep it **non-breaking**. Avoid repo-wide refactors unless the task explicitly says so.
-4. Run tests locally (e.g., `pytest -q`). If tests fail and you cannot fix without scope creep, **stop**: set the task to ⛔ and add a one-line reason.
-5. Make **one atomic commit** with message:  
-   `TASK_ID: short summary`  
-   (example: `JT-VERIFY: verify ARM/Thumb targets via get_function_by_address`)
-6. Update this file:
-   - change ⬜️ → ✅ (or ⛔ with reason)
-   - append the short commit SHA on the DoD line (e.g., `_commit: 796e00d_`)
-   - add a 1–3 line “What changed” note under the task (very brief)
-7. Output a **final report** (in your chat reply) with:
-   - task id, commit SHA, touched files, and a 1–3 line summary
-   - how to run the relevant tests (commands)
-8. **Do not**: reformat the whole repo, or modify other tasks. One task per run, then stop.
+**How to work**
+1. Open `/.plan/TODO.md` and `/.plan/tasks.manifest.json`. **Follow the order** from the manifest’s `sequence`/`after` (or the order here if the manifest is absent).
+2. Pick the **first** task still ⬜️ (todo). If the code already satisfies the DoD, mark ✅ with a one‑line note and short commit.
+3. Implement **only** what this task’s DoD requires. Keep changes **non‑breaking**. No repo‑wide refactors unless the task explicitly says so.
+4. Run the tests shown by this task (example: `python -m pytest -q ...`).
+5. Commit **atomically** with message: `TASK_ID: short summary` (e.g. `SCHEMA-STRICT: enforce JSON envelopes`).
+6. Update this file: change ⬜️ → ✅ (or ⛔ with a one‑line reason), add the **short SHA** right on the DoD line `_commit: abc123_`, and add a 1–3 line “What changed”.
+7. Also update `/.plan/state.json` by running `/.plan/sync_state.sh` (task status, `commit`, `updated_at`).
+8. Reply with a **final run report**: task id, commit SHA, touched files, 1–3 line summary, and the exact test command that passed.
+
+**Do not** reformat the repo, rename modules, or modify other tasks. One task per run, then stop.
 
 ---
 
-### 0) ☑ SYNC-STATE — Keep plan files in lockstep (ID: SYNC-STATE)
+## 0) ☑ SYNC-STATE — Keep plan files in lockstep (ID: SYNC-STATE)
+Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. A tiny check ensures mismatch fails.
+**DoD:** `python -m pytest -q tests/plan/test_state_sync.py` green.
 
-* Mirror task status & short SHA from `/.plan/TODO.md` → `/.plan/state.json`.
-* Add a tiny check in tests (or a pre-commit) that fails on mismatch.
-* **DoD:** `python -m pytest -q tests/plan/test_state_sync.py` green.
+---
 
-### 1) ✅ API-MOUNT — Deterministic routes & MCP tools (ID: API-MOUNT)
+## 1) ✅ API-MOUNT — Deterministic routes & MCP tools (ID: API-MOUNT)
+**DoD:** `GET /openapi.json` 200; `POST /api/jt_slot_check.json` returns envelope. _commit: <set>_
+**What changed:** Routes mounted; integration test proves OpenAPI & envelope.
 
-* HTTP: `/api/jt_slot_check.json`, `/api/jt_slot_process.json`, `/api/jt_scan.json`, `/api/string_xrefs.json`, `/api/mmio_annotate.json`
-* **DoD:** `GET /openapi.json` 200; `POST /api/jt_slot_check.json` returns envelope.
-* *commit:* (already set)
+## 2) ✅ CLIENT-UNIFY — Single client + whitelist (ID: CLIENT-UNIFY)
+**DoD:** Unit tests prove allow/deny surface (cached alias resolver). _commit: <set>_
+**What changed:** Shared client + whitelist; alias cache tests.
 
-### 2) ✅ CLIENT-UNIFY — Single client + whitelist (ID: CLIENT-UNIFY)
+## 3) ✅ RANGE-CONTRACT — Enforce `[code_min, code_max)` (ID: RANGE-CONTRACT)
+**DoD:** Upper‑bound off‑by‑one covered by tests. _commit: <set>_
+**What changed:** Adapters and tests treat upper bound as exclusive.
 
-* **DoD:** Unit tests prove allow/deny surface (cached alias resolver).
-* *commit:* (already set)
+## 4) ✅ JT-VERIFY — Strict ARM/Thumb READ→VERIFY (ID: JT-VERIFY)
+**DoD:** Instruction sentinel, OOR, valid ARM, valid Thumb. _commit: <set>_
+**What changed:** Probe + verify via disassembly/metadata; treat `0xE12FFF1C` as ARM sentinel.
 
-### 3) ✅ RANGE-CONTRACT — Enforce `[code_min, code_max)` (ID: RANGE-CONTRACT)
+## 5) ✅ JT-SCAN — Read‑only batch (ID: JT-SCAN)
+**DoD:** 16‑slot contract passes; `summary.total == len(items)`. _commit: <set>_
+**What changed:** Batch `jt_scan` aggregates slot checks with accurate summary.
 
-* **DoD:** Upper-bound off-by-one covered by tests.
-* *commit:* (already set)
+## 6) ✅ MMIO-HEUR — Precise MMIO heuristics (ID: MMIO-HEUR)
+**DoD:** Unit tests show reduced false positives; request schema satisfied. _commit: <set>_
+**What changed:** Count only LDR/STR immediates; honor `dry_run` and `ENABLE_WRITES=false`.
 
-### 4) ✅ JT-VERIFY — Strict ARM/Thumb READ→VERIFY (ID: JT-VERIFY)
+## 7) ✅ SCHEMA-STRICT — Enforce schemas & envelope (ID: SCHEMA-STRICT)
+**DoD:** `bridge/tests/contract/test_schemas.py` passes for all `/api/*.json`. _commit: <set>_
+**What changed:** Strict `{ok,data|null,errors[]}` envelopes with `additionalProperties:false`; invalid payloads → 400.
 
-* **DoD:** Instruction sentinel, OOR, valid ARM, valid Thumb.
-* *commit:* (already set)
+## 8) ✅ OBS-LIMITS — Observability & limits (ID: OBS-LIMITS)
+**DoD:** `tests/obs/test_limits_and_audit.py` green; audit JSONL created under limits. _commit: <set>_
+**What changed:** `request_scope` metrics, write/batch/time limits, and audit when writes enabled.
 
-### 5) ✅ JT-SCAN — Read-only batch (ID: JT-SCAN)
+## 9) ✅ LEGACY-PARITY — Legacy shim unchanged (ID: LEGACY-PARITY)
+**DoD:** Golden + probe script green; no response drift. _commit: <set>_
+**What changed:** Golden snapshots & shell probe for legacy endpoints.
 
-* **DoD:** 16-slot contract test passes; `summary.total == len(items)`.
-* *commit:* (already set)
+---
 
-### 6) ✅ MMIO-HEUR — Precise MMIO heuristics (ID: MMIO-HEUR)
+## 10) ⬜ CI-TESTS — Gate builds on tests before packaging (ID: CI-TESTS)
+**Goal:** CI must run unit + contract + golden tests **before** Maven packaging. Artifact is produced **only on green**.
+**DoD:** CI workflow shows tests gating packaging on a PR. Include caching and Python setup.
+**Run:** via CI on PR.
+**Steps:**
+- Ensure workflow runs `python -m pytest -q bridge/tests/unit bridge/tests/contract bridge/tests/golden` before the Maven build.
+- Fail the job on test or schema drift; upload artifacts only if tests pass.
 
-* Count only `LDR`/`STR`; ignore `LDM/STM`; extract from `[#imm]` or `=imm`.
-* Respect `dry_run` & `ENABLE_WRITES=false`.
-* **DoD:** Unit tests show reduced false positives; contract schema `mmio_annotate.v1.json` satisfied. _commit: 641ecf7_
-* **Run:** `python -m pytest -q bridge/tests/unit/test_mmio_heuristics.py`
+## 11) ⬜ DOCS-BOOTSTRAP — Developer quickstart & smoke (ID: DOCS-BOOTSTRAP)
+**Goal:** New machine → green smoke in minutes.
+**DoD:** README quickstart (ports: `8081` shim, `8099` SSE; `/api/health.json`), `.env.sample`, and `bin/smoke.sh` that hits health + a sample POST.
+**Run:** `bin/smoke.sh`
+**Steps:**
+- Expand README with venv steps, server flags, curl examples, and troubleshooting.
+- Provide `bin/smoke.sh` to: start server (if not running), `GET /api/health.json`, and one deterministic POST (e.g., `jt_slot_check`).
 
-  What changed: Filtered MMIO counts to immediate load/stores and added targeted heuristics tests.
+## 12) ⬜ CONTROL-FILES — Orchestrate Codex sessions (ID: CONTROL-FILES)
+**Goal:** Make plan files authoritative and self‑healing.
+**DoD:** Tests assert manifest UTF‑8 correctness and `.plan/state.json` sync; Codex follows `tasks.manifest.json` order.
+**Run:** `python -m pytest -q bridge/tests/plan/test_manifest_and_state.py`
+**Steps:**
+- **Fix UTF‑8** in `/.plan/tasks.manifest.json` (e.g., `READ→VERIFY`).
+- Add a small test that fails if `.plan/TODO.md` and `.plan/state.json` disagree on any task’s `status`/`commit`.
+- Keep `/.ci/AGENT_LOCK` up to date (`expires_at` in the future, correct `branch`).
 
-### 7) ✅ SCHEMA-STRICT — Enforce schemas & envelope (ID: SCHEMA-STRICT)
+## 13) ⬜ OPTIONAL-ADAPTERS — x86/MIPS/RISCV (ID: OPTIONAL-ADAPTERS)
+**Goal:** Add additional architecture adapters once the core is stable.
+**DoD:** Adapter unit tests & brief docs.
+**Run:** `python -m pytest -q bridge/tests/unit/test_adapters_*.py`
 
-* All HTTP endpoints & MCP tools return `{ok, data|null, errors[]}` with `additionalProperties:false`.
-* Negative tests (fehlende Felder) → 400 + envelope.
-* **DoD:** `tests/contract/test_schemas.py` passes for all `/api/*.json`.
-* *commit:* 2ed15d3*
-* **Run:** `python -m pytest -q bridge/tests/contract/test_schemas.py`
+---
 
-### 8) ✅ OBS-LIMITS — Observability & limits (ID: OBS-LIMITS)
+### Notes for the current run
+- If a task is already implemented, still write the short “What changed” line and attach the short SHA.
+- Keep **all** responses deterministic: never return fields outside the schema, always wrap in the standard envelope.
+- When writes are disabled, ensure write endpoints enforce `dry_run:true` and return a specific error otherwise.
 
-* Add `request_scope` metrics (request_id, timings, counters) + structured logs.
-* Enforce `GHIDRA_MCP_MAX_WRITES_PER_REQUEST`, `GHIDRA_MCP_MAX_ITEMS_PER_BATCH`, timeouts.
-* Audit JSONL when writes enabled (old→new name, comment diff, verify result).
-* **DoD:** `tests/obs/test_limits_and_audit.py` green; sample audit file created in tmp. _commit: 08d9bd3_
-* **Run:** `python -m pytest -q bridge/tests/obs/test_limits_and_audit.py`
 
-  What changed: Added observability tests, wired request scopes to config-driven limits, and verified JT audit trail output.
 
-### 9) ✅ LEGACY-PARITY — Legacy API unchanged (ID: LEGACY-PARITY)
+---
 
-* Golden tests for selected legacy routes + shell probe.
-* **DoD:** Golden + probe green; no response drift. _commit: a041fe6_
-* **Run:** `python -m pytest -q bridge/tests/golden/test_legacy_apis.py && scripts/probe_legacy.sh`
+## New Tasks — Test hardening (must‑do)
 
-  What changed: Added golden snapshots for legacy shim routes and a probe script to assert responses stay stable.
+### 14) ⬜ WRITE-GUARDS — Writes disabled/enabled behave correctly (ID: WRITE-GUARDS)
+**Goal:** Prove that write-capable endpoints honor `ENABLE_WRITES`/`dry_run`.
+**Scope:** `jt_slot_process`, `mmio_annotate` (and any other write path).
+**DoD:**
+- With `ENABLE_WRITES=false` or `dry_run=true`: no write attempts; response is 200 with deterministic envelope and an explanatory note.
+- With `ENABLE_WRITES=true` & `dry_run=false`: write path is exercised; audit/log hook is hit (if present).
+**Run:** `python -m pytest -q bridge/tests/unit/test_write_guards.py`
+**Notes:** Add explicit unit tests using env patching/fixture; do not enable writes by default.
 
-### 10) ⬜ CI-TESTS — Gate builds on tests (ID: CI-TESTS)
+### 15) ⬜ SSE-HANDSHAKE — Minimal /sse stream health (ID: SSE-HANDSHAKE)
+**Goal:** Catch wiring regressions the in-process registration can’t see.
+**DoD:** Async test connects to `/sse` and receives at least one valid event frame (heartbeat or welcome). Clean shutdown.
+**Run:** `python -m pytest -q bridge/tests/integration/test_sse_handshake.py`
 
-* Extend GitHub Actions: run unit + contract + golden before Maven packaging.
-* **DoD:** Workflow fails on schema drift; artifact only on green.
-* **Run:** (via CI)
+### 16) ⬜ JT-SCAN-CONSISTENCY — Hard invariants asserted (ID: JT-SCAN-CONSISTENCY)
+**Goal:** Guard against accidental summary drift or snapshot-only coverage.
+**DoD:** Contract test asserts `summary.total == len(items)` and `summary.valid + summary.invalid == summary.total` for representative payloads.
+**Run:** `python -m pytest -q bridge/tests/contract/test_jt_scan_consistency.py`
 
-### 11) ⬜ DOCS-BOOTSTRAP — Developer docs & scripts (ID: DOCS-BOOTSTRAP)
+### 17) ⬜ STRINGS-ASSERTS — Stronger verification on xref flow (ID: STRINGS-ASSERTS)
+**Goal:** Ensure the strings feature actually respects client limits and disassembly paths.
+**DoD:** Unit test asserts recorded `last_limit` and `disasm_calls` on the dummy client match expected values.
+**Run:** `python -m pytest -q bridge/tests/unit/test_strings_asserts.py`
 
-* README Quickstart: Ports (`8081` Shim API, `8099` SSE), `/api/health.json`, curl examples.
-* Add `bin/smoke.sh`.
-* **DoD:** Fresh machine can follow README to green smoke.
-* **Run:** `bin/smoke.sh`
+### 18) ⬜ SNAPSHOT-SAFEGUARD — Non-golden guard rails (ID: SNAPSHOT-SAFEGUARD)
+**Goal:** Prevent “green by snapshot update”.
+**DoD:** Add a small set of non-snapshot contract assertions for key endpoints (status code, envelope shape, critical counters) that must pass even when golden updates are allowed.
+**Run:** `python -m pytest -q bridge/tests/contract/test_safeguards.py`
 
-### 12) ⬜ CONTROL-FILES — Orchestrating Codex runs (ID: CONTROL-FILES)
-
-* Maintain `/.plan/tasks.manifest.json` order; **UTF-8 fix** for „→“.
-* Keep `/.plan/state.json` in sync (siehe Task 0).
-* **DoD:** Tests assert UTF-8 & sync; Codex follows the manifest sequence.
-* **Run:** `python -m pytest -q bridge/tests/plan/test_manifest_and_state.py`
-
-### 13) ⬜ OPTIONAL-ADAPTERS — x86/MIPS/RISCV (ID: OPTIONAL-ADAPTERS)
-
-* Add adapters + tests after core stabilisiert.
-* **DoD:** Adapter tests & docs.
+### 19) ⬜ PLAN-CHECK — Single-script plan consistency + CI (ID: PLAN-CHECK)
+**Goal:** Keep `/.plan/TODO.md`, `/.plan/state.json`, and `/.plan/tasks.manifest.json` in lockstep—without test bloat.
+**DoD:**
+- Add `bin/plan_check.py` (Stdlib only) to verify IDs, status mapping (✅/⬜/⛔ → done/todo|in-progress/blocked), and UTF‑8 (no `→`).
+- Add a tiny CI job `.github/workflows/plan-check.yml` running `python3 bin/plan_check.py` on PRs touching `.plan/**`.
+**Run:** `python3 bin/plan_check.py`
 
