@@ -35,6 +35,17 @@ def register_tools(
         code_max: str,
         arch: str = "auto",
     ) -> Dict[str, object]:
+        request_payload = {
+            "jt_base": jt_base,
+            "slot_index": slot_index,
+            "code_min": code_min,
+            "code_max": code_max,
+            "arch": arch,
+        }
+        valid, errors = validate_payload("jt_slot_check.request.v1.json", request_payload)
+        if not valid:
+            return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+
         adapter = adapter_for_arch(arch)
         with request_scope(
             "jt_slot_check",
@@ -67,6 +78,20 @@ def register_tools(
         dry_run: bool = True,
         arch: str = "auto",
     ) -> Dict[str, object]:
+        request_payload = {
+            "jt_base": jt_base,
+            "slot_index": slot_index,
+            "code_min": code_min,
+            "code_max": code_max,
+            "rename_pattern": rename_pattern,
+            "comment": comment,
+            "dry_run": dry_run,
+            "arch": arch,
+        }
+        valid, errors = validate_payload("jt_slot_process.request.v1.json", request_payload)
+        if not valid:
+            return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+
         adapter = adapter_for_arch(arch)
         try:
             with request_scope(
@@ -105,6 +130,18 @@ def register_tools(
         code_max: str,
         arch: str = "auto",
     ) -> Dict[str, object]:
+        request_payload = {
+            "jt_base": jt_base,
+            "start": start,
+            "count": count,
+            "code_min": code_min,
+            "code_max": code_max,
+            "arch": arch,
+        }
+        valid, errors = validate_payload("jt_scan.request.v1.json", request_payload)
+        if not valid:
+            return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+
         adapter = adapter_for_arch(arch)
         with request_scope(
             "jt_scan",
@@ -132,6 +169,14 @@ def register_tools(
         string_addr: str,
         limit: int = 50,
     ) -> Dict[str, object]:
+        request_payload = {
+            "string_addr": string_addr,
+            "limit": limit,
+        }
+        valid, errors = validate_payload("string_xrefs.request.v1.json", request_payload)
+        if not valid:
+            return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+
         with request_scope(
             "string_xrefs",
             logger=logger,
@@ -155,6 +200,15 @@ def register_tools(
         dry_run: bool = True,
         max_samples: int = 8,
     ) -> Dict[str, object]:
+        request_payload = {
+            "function_addr": function_addr,
+            "dry_run": dry_run,
+            "max_samples": max_samples,
+        }
+        valid, errors = validate_payload("mmio_annotate.request.v1.json", request_payload)
+        if not valid:
+            return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+
         try:
             with request_scope(
                 "mmio_annotate",
