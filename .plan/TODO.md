@@ -132,10 +132,11 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 **Run:** `python -m pytest -q bridge/tests/unit/test_strings_asserts.py`
 **What changed:** Added focused unit coverage to record forwarded limits and invoked disassembly addresses.
 
-### 18) ⬜ SNAPSHOT-SAFEGUARD — Non-golden guard rails (ID: SNAPSHOT-SAFEGUARD)
+### 18) ✅ SNAPSHOT-SAFEGUARD — Non-golden guard rails (ID: SNAPSHOT-SAFEGUARD)
 **Goal:** Prevent “green by snapshot update”.
-**DoD:** Add a small set of non-snapshot contract assertions for key endpoints (status code, envelope shape, critical counters) that must pass even when golden updates are allowed.
+**DoD:** Add a small set of non-snapshot contract assertions for key endpoints (status code, envelope shape, critical counters) that must pass even when golden updates are allowed. _commit: e217583_
 **Run:** `python -m pytest -q bridge/tests/contract/test_safeguards.py`
+**What changed:** Added snapshot-independent contract tests that assert envelope shape and key counters for critical endpoints.
 
 ### 19) ⬜ PLAN-CHECK — Single-script plan consistency + CI (ID: PLAN-CHECK)
 **Goal:** Keep `/.plan/TODO.md`, `/.plan/state.json`, and `/.plan/tasks.manifest.json` in lockstep—without test bloat.

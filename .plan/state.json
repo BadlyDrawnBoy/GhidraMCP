@@ -8,27 +8,27 @@
     "API-MOUNT": {
       "status": "done",
       "commit": "25b8788",
-      "updated_at": "2025-10-29T00:52:12+00:00"
+      "updated_at": "2025-10-29T01:05:50+00:00"
     },
     "CLIENT-UNIFY": {
       "status": "done",
       "commit": "2d3b1d0",
-      "updated_at": "2025-10-29T00:52:12+00:00"
+      "updated_at": "2025-10-29T01:05:50+00:00"
     },
     "RANGE-CONTRACT": {
       "status": "done",
       "commit": "844252e",
-      "updated_at": "2025-10-29T00:52:12+00:00"
+      "updated_at": "2025-10-29T01:05:50+00:00"
     },
     "JT-VERIFY": {
       "status": "done",
       "commit": "844252e",
-      "updated_at": "2025-10-29T00:52:12+00:00"
+      "updated_at": "2025-10-29T01:05:50+00:00"
     },
     "JT-SCAN": {
       "status": "done",
       "commit": "0a8279f",
-      "updated_at": "2025-10-29T00:52:12+00:00"
+      "updated_at": "2025-10-29T01:05:50+00:00"
     },
     "MMIO-HEUR": {
       "status": "done",
@@ -46,14 +46,14 @@
       "updated_at": "2025-10-28T01:17:13+00:00"
     },
     "LEGACY-PARITY": {
-      "status": "todo",
-      "commit": null,
-      "updated_at": null
+      "status": "done",
+      "commit": "<set>",
+      "updated_at": "2025-10-29T01:05:57.675650+00:00"
     },
     "CI-TESTS": {
       "status": "done",
-      "commit": "4bb6a3b",
-      "updated_at": "2025-10-29T00:52:12+00:00"
+      "commit": "c79666e",
+      "updated_at": "2025-10-29T01:05:50+00:00"
     },
     "DOCS-BOOTSTRAP": {
       "status": "todo",
@@ -78,22 +78,22 @@
     "SSE-HANDSHAKE": {
       "status": "done",
       "commit": "891692b",
-      "updated_at": "2025-10-29T00:52:12+00:00"
+      "updated_at": "2025-10-29T01:05:50+00:00"
     },
     "JT-SCAN-CONSISTENCY": {
       "status": "done",
       "commit": "0a8279f",
-      "updated_at": "2025-10-29T00:52:12+00:00"
+      "updated_at": "2025-10-29T01:05:50+00:00"
     },
     "STRINGS-ASSERTS": {
       "status": "done",
       "commit": "<set>",
-      "updated_at": "2025-10-29T00:52:12+00:00"
+      "updated_at": "2025-10-29T01:05:50+00:00"
     },
     "SNAPSHOT-SAFEGUARD": {
-      "status": "todo",
-      "commit": null,
-      "updated_at": null
+      "status": "done",
+      "commit": "e217583",
+      "updated_at": "2025-10-29T01:05:43.006161+00:00"
     },
     "PLAN-CHECK": {
       "status": "todo",
