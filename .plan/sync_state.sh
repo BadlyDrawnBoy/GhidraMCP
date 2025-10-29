@@ -17,6 +17,11 @@ JT_SCAN_SHA=$(sha \
   bridge/tests/contract/test_http_contracts.py \
   bridge/tests/golden/data/jt_slot_cases.json)
 
+JT_SCAN_CONSISTENCY_SHA=$(sha \
+  bridge/tests/contract/conftest.py \
+  bridge/tests/contract/test_http_contracts.py \
+  bridge/tests/contract/test_jt_scan_consistency.py)
+
 # Aus deinem Log bekannt:
 JT_VERIFY_SHA=844252e
 
@@ -53,6 +58,7 @@ update() {
 
 update API-MOUNT        "$API_MOUNT_SHA"
 update JT-SCAN          "$JT_SCAN_SHA"
+update JT-SCAN-CONSISTENCY "$JT_SCAN_CONSISTENCY_SHA"
 update JT-VERIFY        "$JT_VERIFY_SHA"
 update RANGE-CONTRACT   "$RANGE_CONTRACT_SHA"
 update CLIENT-UNIFY     "$CLIENT_UNIFY_SHA"

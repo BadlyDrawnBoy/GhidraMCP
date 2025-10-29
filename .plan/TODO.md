@@ -119,10 +119,11 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 **Run:** `python -m pytest -q bridge/tests/integration/test_sse_handshake.py`
 **What changed:** Added an ASGI-level integration test that drives the FastMCP SSE app and asserts the endpoint event frame.
 
-### 16) ⬜ JT-SCAN-CONSISTENCY — Hard invariants asserted (ID: JT-SCAN-CONSISTENCY)
-**Goal:** Guard against accidental summary drift or snapshot-only coverage.
+### 16) ✅ JT-SCAN-CONSISTENCY — Hard invariants asserted (ID: JT-SCAN-CONSISTENCY)
+**Goal:** Guard against accidental summary drift or snapshot-only coverage. _commit: c96219f_
 **DoD:** Contract test asserts `summary.total == len(items)` and `summary.valid + summary.invalid == summary.total` for representative payloads.
 **Run:** `python -m pytest -q bridge/tests/contract/test_jt_scan_consistency.py`
+**What changed:** Added dedicated contract coverage over multiple `jt_scan` payloads to assert the summary invariants.
 
 ### 17) ⬜ STRINGS-ASSERTS — Stronger verification on xref flow (ID: STRINGS-ASSERTS)
 **Goal:** Ensure the strings feature actually respects client limits and disassembly paths.
