@@ -33,6 +33,19 @@ CLIENT_UNIFY_SHA=$(sha \
   bridge/tests/unit/test_ghidra_whitelist.py \
   bridge/client)
 
+CI_TESTS_SHA=$(sha \
+  .github/workflows/build.yml)
+if [ -z "${CI_TESTS_SHA:-}" ]; then
+  CI_TESTS_SHA=$(python3 - <<'PY'
+from pathlib import Path
+import re
+todo = Path('.plan/TODO.md').read_text(encoding='utf-8')
+m = re.search(r"CI-TESTS.*?_commit:\s*([0-9a-f]{7})_", todo, re.DOTALL)
+print(m.group(1) if m else(""))
+PY
+  )
+fi
+
 STRINGS_ASSERTS_SHA=$(python3 - <<'PY'
 from pathlib import Path
 import re
@@ -73,6 +86,7 @@ update RANGE-CONTRACT   "$RANGE_CONTRACT_SHA"
 update CLIENT-UNIFY     "$CLIENT_UNIFY_SHA"
 update STRINGS-ASSERTS   "$STRINGS_ASSERTS_SHA"
 update SSE-HANDSHAKE    "$SSE_HANDSHAKE_SHA"
+update CI-TESTS         "$CI_TESTS_SHA"
 
 echo
 echo "Current state:"

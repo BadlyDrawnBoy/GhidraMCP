@@ -60,13 +60,14 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 
 ---
 
-## 10) ⬜ CI-TESTS — Gate builds on tests before packaging (ID: CI-TESTS)
+## 10) ✅ CI-TESTS — Gate builds on tests before packaging (ID: CI-TESTS)
 **Goal:** CI must run unit + contract + golden tests **before** Maven packaging. Artifact is produced **only on green**.
-**DoD:** CI workflow shows tests gating packaging on a PR. Include caching and Python setup.
+**DoD:** CI workflow shows tests gating packaging on a PR. Include caching and Python setup. _commit: 4bb6a3b_
 **Run:** via CI on PR.
 **Steps:**
 - Ensure workflow runs `python -m pytest -q bridge/tests/unit bridge/tests/contract bridge/tests/golden` before the Maven build.
 - Fail the job on test or schema drift; upload artifacts only if tests pass.
+**What changed:** GitHub Actions installs cached Python deps, runs the unit/contract/golden suites ahead of Maven, and requires the test job to succeed before packaging.
 
 ## 11) ⬜ DOCS-BOOTSTRAP — Developer quickstart & smoke (ID: DOCS-BOOTSTRAP)
 **Goal:** New machine → green smoke in minutes.
