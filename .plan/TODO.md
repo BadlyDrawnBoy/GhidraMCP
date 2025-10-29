@@ -125,10 +125,11 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 **Run:** `python -m pytest -q bridge/tests/contract/test_jt_scan_consistency.py`
 **What changed:** Added dedicated contract coverage over multiple `jt_scan` payloads to assert the summary invariants.
 
-### 17) ⬜ STRINGS-ASSERTS — Stronger verification on xref flow (ID: STRINGS-ASSERTS)
+### 17) ✅ STRINGS-ASSERTS — Stronger verification on xref flow (ID: STRINGS-ASSERTS)
 **Goal:** Ensure the strings feature actually respects client limits and disassembly paths.
-**DoD:** Unit test asserts recorded `last_limit` and `disasm_calls` on the dummy client match expected values.
+**DoD:** Unit test asserts recorded `last_limit` and `disasm_calls` on the dummy client match expected values. _commit: <set>_
 **Run:** `python -m pytest -q bridge/tests/unit/test_strings_asserts.py`
+**What changed:** Added focused unit coverage to record forwarded limits and invoked disassembly addresses.
 
 ### 18) ⬜ SNAPSHOT-SAFEGUARD — Non-golden guard rails (ID: SNAPSHOT-SAFEGUARD)
 **Goal:** Prevent “green by snapshot update”.
