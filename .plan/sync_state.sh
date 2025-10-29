@@ -33,6 +33,15 @@ CLIENT_UNIFY_SHA=$(sha \
   bridge/tests/unit/test_ghidra_whitelist.py \
   bridge/client)
 
+STRINGS_ASSERTS_SHA=$(python3 - <<'PY'
+from pathlib import Path
+import re
+todo = Path('.plan/TODO.md').read_text(encoding='utf-8')
+m = re.search(r"STRINGS-ASSERTS.*?_commit:\s*([^_\s]+)_", todo, re.DOTALL)
+print(m.group(1) if m else (""))
+PY
+)
+
 SSE_HANDSHAKE_SHA=$(python3 - <<'PY'
 from pathlib import Path
 import re
@@ -62,6 +71,7 @@ update JT-SCAN-CONSISTENCY "$JT_SCAN_CONSISTENCY_SHA"
 update JT-VERIFY        "$JT_VERIFY_SHA"
 update RANGE-CONTRACT   "$RANGE_CONTRACT_SHA"
 update CLIENT-UNIFY     "$CLIENT_UNIFY_SHA"
+update STRINGS-ASSERTS   "$STRINGS_ASSERTS_SHA"
 update SSE-HANDSHAKE    "$SSE_HANDSHAKE_SHA"
 
 echo

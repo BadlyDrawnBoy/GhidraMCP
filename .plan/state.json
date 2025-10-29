@@ -8,27 +8,27 @@
     "API-MOUNT": {
       "status": "done",
       "commit": "25b8788",
-      "updated_at": "2025-10-29T00:15:40+00:00"
+      "updated_at": "2025-10-29T00:39:30+00:00"
     },
     "CLIENT-UNIFY": {
       "status": "done",
       "commit": "2d3b1d0",
-      "updated_at": "2025-10-29T00:15:40+00:00"
+      "updated_at": "2025-10-29T00:39:30+00:00"
     },
     "RANGE-CONTRACT": {
       "status": "done",
       "commit": "844252e",
-      "updated_at": "2025-10-29T00:15:40+00:00"
+      "updated_at": "2025-10-29T00:39:30+00:00"
     },
     "JT-VERIFY": {
       "status": "done",
       "commit": "844252e",
-      "updated_at": "2025-10-29T00:15:40+00:00"
+      "updated_at": "2025-10-29T00:39:30+00:00"
     },
     "JT-SCAN": {
       "status": "done",
-      "commit": "c96219f",
-      "updated_at": "2025-10-29T00:15:40+00:00"
+      "commit": "0a8279f",
+      "updated_at": "2025-10-29T00:39:30+00:00"
     },
     "MMIO-HEUR": {
       "status": "done",
@@ -78,17 +78,17 @@
     "SSE-HANDSHAKE": {
       "status": "done",
       "commit": "891692b",
-      "updated_at": "2025-10-29T00:15:40+00:00"
+      "updated_at": "2025-10-29T00:39:30+00:00"
     },
     "JT-SCAN-CONSISTENCY": {
       "status": "done",
-      "commit": "c96219f",
-      "updated_at": "2025-10-29T00:15:40+00:00"
+      "commit": "0a8279f",
+      "updated_at": "2025-10-29T00:39:30+00:00"
     },
     "STRINGS-ASSERTS": {
-      "status": "todo",
-      "commit": null,
-      "updated_at": null
+      "status": "done",
+      "commit": "<set>",
+      "updated_at": "2025-10-29T00:39:30+00:00"
     },
     "SNAPSHOT-SAFEGUARD": {
       "status": "todo",
