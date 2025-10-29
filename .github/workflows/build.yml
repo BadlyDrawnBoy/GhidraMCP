@@ -26,11 +26,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: '3.11' }
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
       - run: |
           python -m pip install -r requirements.txt
           python -m pip install -r requirements-dev.txt
-      - run: python -m pytest -q
+      - run: python -m pytest -q bridge/tests/unit bridge/tests/contract bridge/tests/golden
 
   # 2) Dateifilter bestimmen, ob Java gebaut wird
   changes:
@@ -50,7 +55,9 @@ jobs:
   # 3) Maven nur, wenn Java geändert wurde
   maven:
     name: Maven package (skip tests)
-    needs: changes
+    needs:
+      - changes
+      - pytests
     if: needs.changes.outputs.maven == 'true'
     runs-on: ubuntu-latest
     steps:
