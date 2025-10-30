@@ -1,0 +1,42 @@
+{
+  "info": {
+    "title": "Ghidra MCP Bridge API",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/health.json": {
+      "get": {
+        "summary": "health_route"
+      },
+      "head": {
+        "summary": "health_route"
+      }
+    },
+    "/api/jt_scan.json": {
+      "post": {
+        "summary": "jt_scan_route"
+      }
+    },
+    "/api/jt_slot_check.json": {
+      "post": {
+        "summary": "jt_slot_check_route"
+      }
+    },
+    "/api/jt_slot_process.json": {
+      "post": {
+        "summary": "jt_slot_process_route"
+      }
+    },
+    "/api/mmio_annotate.json": {
+      "post": {
+        "summary": "mmio_annotate_route"
+      }
+    },
+    "/api/string_xrefs.json": {
+      "post": {
+        "summary": "string_xrefs_route"
+      }
+    }
+  }
+}
