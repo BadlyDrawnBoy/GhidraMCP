@@ -160,3 +160,10 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 **DoD:** README documents mapping between legacy objects and new deterministic endpoints; quickstart reaches shim + sample request in ≤3 commands. _commit: 6ebf303_
 **What changed:** Added "Legacy ↔ Bridge mapping" section outlining envelopes, batching, and write guards, and rewrote the quickstart with a three-command flow.
 
+## 14) ⬜ STRINGS-COMPACT — Compact strings/xrefs (ID: STRINGS-COMPACT)
+**DoD:** Provide a compact, token-friendly variant of the strings/xrefs feature that keeps determinism but minimizes payload size. Unit tests prove stable envelope/fields and a size bound; a contract test verifies deterministic ordering and invariants. README gets a Legacy ↔ Bridge row for the compact variant.
+**Test:**
+    python -m pytest -q bridge/tests/unit/test_strings_compact.py
+    python -m pytest -q bridge/tests/contract/test_strings_compact_contract.py
+    python3 bin/plan_check.py
+
