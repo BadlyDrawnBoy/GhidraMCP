@@ -109,6 +109,11 @@
       "status": "done",
       "commit": "4444174",
       "updated_at": "2025-10-30T01:59:38.984625+00:00"
+    },
+    "README-LEGACY-MAP": {
+      "status": "done",
+      "commit": "6ebf303",
+      "updated_at": "2025-10-30T12:19:15+00:00"
     }
   }
 }

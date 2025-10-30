@@ -10,15 +10,17 @@ I have absolutely **no idea** what I am doing here. The entire codebase, documen
 
 ## Quickstart
 
-With the deterministic shim listening on **8081** (HTTP) and the SSE transport on **8099**, you can sanity-check a local
-instance by pointing the smoke script at the shim base URL:
+The shortest path to a live shim plus a sample deterministic request fits in **three commands**:
 
 ```bash
-export BASE_URL=http://127.0.0.1:8081
-bash bin/smoke.sh
+python -m venv .venv && source .venv/bin/activate && pip install -r requirements-dev.txt
+GHIDRA_SERVER_URL=http://127.0.0.1:8080/ python bridge_mcp_ghidra.py --transport sse --shim-port 8081 --mcp-port 8099 --ghidra-server http://127.0.0.1:8080/
+curl -s http://127.0.0.1:8081/api/jt_slot_check.json -H 'content-type: application/json' -d '{"jt_base":"0x00100000","slot_index":0,"code_min":"0x00100000","code_max":"0x0010FFFF"}' | jq
 ```
 
-The script hits `/api/health.json` and a representative POST endpoint, printing `SMOKE OK` when both succeed.
+The first command prepares a virtual environment and installs development dependencies. The second launches the bridge in SSE
+mode, exposing the deterministic shim on **8081** and the SSE transport on **8099**. The third command hits the jump-table slot
+check endpoint and prints the structured response envelope.
 
 ## What this repository contains now
 
@@ -27,6 +29,23 @@ The script hits `/api/health.json` and a representative POST endpoint, printing 
 * Legacy CLI and shim behaviour preserved from the upstream project so existing MCP clients keep working while the new stack is wired in.
 
 Because the refactor is still underway, you will find both the legacy `bridge_mcp_ghidra.py` script and the new `bridge/` package living side by side. The plan is to migrate gradually without breaking existing tooling.
+
+## Legacy ↔ Bridge mapping
+
+| Legacy object/tool | Deterministic bridge surface | Notes |
+| --- | --- | --- |
+| `jt_slot_check` (CLI + MCP tool) | `/api/jt_slot_check.json` (`jt_slot_check` tool) | Returns `{ok,data,errors}` envelope with deterministic slot metadata. |
+| `jt_scan` batch helper | `/api/jt_scan.json` (`jt_scan` tool) | Accepts lists of slots; summaries assert `total == len(items)` and respect read-only batching limits. |
+| `jt_verify` legacy RPC | Folded into `/api/jt_slot_process.json` verification phase | Write guard enforces `dry_run`/`ENABLE_WRITES`; verification happens before rename/comment commits. |
+| `mmio_annotate` | `/api/mmio_annotate.json` (`mmio_annotate_compact` tool) | Deterministic envelope with capped samples and explicit dry-run behaviour. |
+| `strings` / string xrefs | `/api/string_xrefs.json` (`string_xrefs_compact` tool) | Enveloped response with batched disassembly contexts and limit tracking. |
+| `rename_function` | `/api/jt_slot_process.json` writes | Guarded by write limits/audit logging; requires writes enabled and `dry_run=false`. |
+| `set_decompiler_comment` | `/api/jt_slot_process.json` writes | Shares the same write guard + audit path as deterministic rename. |
+| Misc legacy health/info | `/api/health.json`, `/openapi.json` | Both now return deterministic envelopes and are covered by snapshot tests. |
+
+Every deterministic endpoint produces the strict `{ok,data|null,errors[]}` envelope, and write-capable routes reject stateful
+operations unless writes are explicitly enabled. Batch-style requests (`jt_scan`, string xrefs) apply read-only limits and
+include summary counters so downstream clients can prove the response is complete.
 
 ## Features (current state)
 
