@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import logging
 from functools import wraps
-from typing import Callable, Dict, Tuple
+from typing import Callable, Dict, List, Tuple
 
 import httpx
 from starlette.requests import Request
@@ -16,7 +16,12 @@ from ..ghidra.client import GhidraClient
 from ..utils.config import ENABLE_WRITES, MAX_WRITES_PER_REQUEST
 from ..utils.errors import ErrorCode
 from ..utils.hex import parse_hex
-from ..utils.logging import SafetyLimitExceeded, request_scope
+from ..utils.logging import (
+    SafetyLimitExceeded,
+    enforce_batch_limit,
+    increment_counter,
+    request_scope,
+)
 from ._shared import adapter_for_arch, envelope_error, envelope_ok
 from .validators import validate_payload
 
@@ -262,6 +267,80 @@ def make_routes(
             return JSONResponse(response)
 
     @with_client
+    async def strings_compact_route(request: Request, client: GhidraClient):
+        with request_scope(
+            "strings_compact",
+            logger=logger,
+            extra={"path": "/api/strings_compact.json"},
+        ):
+            data, error = await _validated_json_body(
+                request, "strings_compact.request.v1.json"
+            )
+            if error is not None:
+                return error
+            assert data is not None
+            try:
+                limit = int(data.get("limit", 0))
+                offset = int(data.get("offset", 0))
+            except (TypeError, ValueError) as exc:
+                return JSONResponse(
+                    envelope_error(ErrorCode.INVALID_ARGUMENT, str(exc)),
+                    status_code=400,
+                )
+            if limit <= 0:
+                return JSONResponse(
+                    envelope_error(
+                        ErrorCode.INVALID_ARGUMENT, "limit must be a positive integer."
+                    ),
+                    status_code=400,
+                )
+            if offset < 0:
+                return JSONResponse(
+                    envelope_error(
+                        ErrorCode.INVALID_ARGUMENT, "offset must be a non-negative integer."
+                    ),
+                    status_code=400,
+                )
+            try:
+                enforce_batch_limit(limit, counter="strings.compact.limit")
+            except SafetyLimitExceeded as exc:
+                return JSONResponse(
+                    envelope_error(ErrorCode.SAFETY_LIMIT, str(exc)), status_code=400
+                )
+
+            increment_counter("strings.compact.calls")
+
+            raw_entries: List[Dict[str, object]] = []
+            fetcher = getattr(client, "list_strings_compact", None)
+            if callable(fetcher):
+                result = fetcher(limit=limit, offset=offset)
+                raw_entries = [] if result is None else list(result)
+            else:
+                fallback = getattr(client, "list_strings", None)
+                if callable(fallback):
+                    try:
+                        result = fallback(limit=limit, offset=offset)
+                    except TypeError:
+                        result = fallback(limit=limit)
+                    raw_entries = [] if result is None else list(result)
+
+            try:
+                payload = strings.strings_compact_view(raw_entries)
+            except (TypeError, ValueError) as exc:
+                return JSONResponse(
+                    envelope_error(ErrorCode.INVALID_ARGUMENT, str(exc)),
+                    status_code=400,
+                )
+
+            valid, errors = validate_payload("strings_compact.v1.json", payload)
+            response = (
+                envelope_ok(payload)
+                if valid
+                else envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+            )
+            return JSONResponse(response)
+
+    @with_client
     async def mmio_annotate_route(request: Request, client: GhidraClient):
         with request_scope(
             "mmio_annotate",
@@ -311,6 +390,7 @@ def make_routes(
         Route("/api/jt_slot_check.json", jt_slot_check_route, methods=["POST"]),
         Route("/api/jt_slot_process.json", jt_slot_process_route, methods=["POST"]),
         Route("/api/jt_scan.json", jt_scan_route, methods=["POST"]),
+        Route("/api/strings_compact.json", strings_compact_route, methods=["POST"]),
         Route("/api/string_xrefs.json", string_xrefs_route, methods=["POST"]),
         Route("/api/mmio_annotate.json", mmio_annotate_route, methods=["POST"]),
     ]

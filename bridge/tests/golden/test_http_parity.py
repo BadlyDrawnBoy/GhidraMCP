@@ -76,6 +76,23 @@ class GoldenStubGhidraClient:
             0x00007010,
             0x00007014,
         }
+        self._strings: List[Dict[str, object]] = [
+            {
+                "literal": "Firmware build ready",
+                "address": 0x00200020,
+                "refs": 3,
+            },
+            {
+                "literal": "Diagnostic mode enabled",
+                "address": 0x00200000,
+                "refs": 5,
+            },
+            {
+                "literal": "Boot complete",
+                "address": 0x00200010,
+                "refs": 2,
+            },
+        ]
 
     def read_dword(self, address: int) -> Optional[int]:
         return self._dwords.get(address)
@@ -106,6 +123,15 @@ class GoldenStubGhidraClient:
 
     def set_disassembly_comment(self, address: int, comment: str) -> bool:
         return address in self._instruction_addresses
+
+    def list_strings_compact(
+        self, *, limit: int = 50, offset: int = 0
+    ) -> List[Dict[str, object]]:
+        if limit < 0:
+            limit = 0
+        start = max(offset, 0)
+        end = start + limit
+        return [dict(entry) for entry in self._strings[start:end]]
 
     def close(self) -> None:  # pragma: no cover - interface requirement
         return None

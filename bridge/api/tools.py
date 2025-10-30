@@ -10,7 +10,12 @@ from ..features import jt, mmio, strings
 from ..ghidra.client import GhidraClient
 from ..utils.config import ENABLE_WRITES
 from ..utils.errors import ErrorCode
-from ..utils.logging import SafetyLimitExceeded, request_scope
+from ..utils.logging import (
+    SafetyLimitExceeded,
+    enforce_batch_limit,
+    increment_counter,
+    request_scope,
+)
 from ..utils.hex import parse_hex
 from ._shared import adapter_for_arch, envelope_error, envelope_ok, with_client
 from .validators import validate_payload
@@ -188,6 +193,52 @@ def register_tools(
                 limit=limit,
             )
         valid, errors = validate_payload("string_xrefs.v1.json", data)
+        if not valid:
+            return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+        return envelope_ok(data)
+
+    @server.tool()
+    @tool_client
+    def strings_compact(
+        client,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> Dict[str, object]:
+        request_payload = {"limit": limit, "offset": offset}
+        valid, errors = validate_payload("strings_compact.request.v1.json", request_payload)
+        if not valid:
+            return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+
+        try:
+            enforce_batch_limit(limit, counter="strings.compact.limit")
+        except SafetyLimitExceeded as exc:
+            return envelope_error(ErrorCode.SAFETY_LIMIT, str(exc))
+
+        with request_scope(
+            "strings_compact",
+            logger=logger,
+            extra={"tool": "strings_compact"},
+        ):
+            increment_counter("strings.compact.calls")
+            raw_entries: list[dict[str, object]] = []
+            fetcher = getattr(client, "list_strings_compact", None)
+            if callable(fetcher):
+                result = fetcher(limit=limit, offset=offset)
+                raw_entries = [] if result is None else list(result)
+            else:
+                fallback = getattr(client, "list_strings", None)
+                if callable(fallback):
+                    try:
+                        result = fallback(limit=limit, offset=offset)
+                    except TypeError:
+                        result = fallback(limit=limit)
+                    raw_entries = [] if result is None else list(result)
+            try:
+                data = strings.strings_compact_view(raw_entries)
+            except (TypeError, ValueError) as exc:
+                return envelope_error(ErrorCode.INVALID_ARGUMENT, str(exc))
+
+        valid, errors = validate_payload("strings_compact.v1.json", data)
         if not valid:
             return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
         return envelope_ok(data)

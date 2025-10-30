@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 import re
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from ..ghidra.client import GhidraClient
-from ..utils.hex import int_to_hex
+from ..utils.hex import int_to_hex, parse_hex
 from ..utils.logging import enforce_batch_limit, increment_counter
 
 
@@ -178,4 +178,81 @@ def xrefs_compact(client: GhidraClient, *, string_addr: int, limit: int = 50) ->
     }
 
 
-__all__ = ["xrefs_compact"]
+_ELLIPSIS = "…"
+
+
+def _normalize_literal(value: str) -> str:
+    normalized = " ".join(value.replace("\n", " ").replace("\r", " ").split())
+    return normalized
+
+
+def _truncate_literal(value: str, *, max_len: int = 120) -> str:
+    if len(value) <= max_len:
+        return value
+    if max_len <= 0:
+        return ""
+    return value[: max_len - 1] + _ELLIPSIS
+
+
+def strings_compact_view(
+    entries: Sequence[Mapping[str, object]]
+) -> Dict[str, object]:
+    """Normalize raw string metadata into the compact response structure."""
+
+    normalized: List[Tuple[int, Dict[str, object]]] = []
+    for raw in entries:
+        literal_raw = raw.get("literal")
+        if literal_raw is None:
+            literal_raw = raw.get("string")
+        if literal_raw is None:
+            literal_raw = raw.get("s", "")
+        literal = _normalize_literal(str(literal_raw))
+        literal = _truncate_literal(literal)
+
+        address_raw = raw.get("address")
+        if address_raw is None:
+            address_raw = raw.get("addr")
+        if address_raw is None:
+            raise ValueError("Missing address for compact string entry")
+        if isinstance(address_raw, str):
+            address = parse_hex(address_raw)
+        elif isinstance(address_raw, int):
+            address = address_raw
+        else:
+            raise ValueError("Invalid address type for compact string entry")
+
+        refs_raw = None
+        if "refs" in raw:
+            refs_raw = raw.get("refs")
+        elif "xref_count" in raw:
+            refs_raw = raw.get("xref_count")
+        elif "count" in raw:
+            refs_raw = raw.get("count")
+        elif "callers" in raw and isinstance(raw["callers"], (list, tuple, set)):
+            refs_raw = len(raw["callers"])
+        if refs_raw is None:
+            refs = 0
+        elif isinstance(refs_raw, (list, tuple, set)):
+            refs = len(refs_raw)
+        else:
+            refs = int(refs_raw)
+        if refs < 0:
+            refs = 0
+
+        normalized.append(
+            (
+                int(address),
+                {
+                    "s": literal,
+                    "addr": int_to_hex(int(address)),
+                    "refs": refs,
+                },
+            )
+        )
+
+    normalized.sort(key=lambda item: item[0])
+    items = [payload for _, payload in normalized]
+    return {"total": len(items), "items": items}
+
+
+__all__ = ["strings_compact_view", "xrefs_compact"]

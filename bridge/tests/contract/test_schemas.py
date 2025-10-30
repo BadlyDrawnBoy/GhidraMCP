@@ -70,6 +70,15 @@ _CASES: List[EndpointCase] = [
         missing="string_addr",
     ),
     EndpointCase(
+        id="strings_compact",
+        path="/api/strings_compact.json",
+        valid={
+            "limit": 3,
+            "offset": 0,
+        },
+        missing="limit",
+    ),
+    EndpointCase(
         id="mmio_annotate",
         path="/api/mmio_annotate.json",
         valid={

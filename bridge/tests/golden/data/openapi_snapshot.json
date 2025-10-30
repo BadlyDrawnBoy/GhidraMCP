@@ -33,6 +33,11 @@
         "summary": "mmio_annotate_route"
       }
     },
+    "/api/strings_compact.json": {
+      "post": {
+        "summary": "strings_compact_route"
+      }
+    },
     "/api/string_xrefs.json": {
       "post": {
         "summary": "string_xrefs_route"

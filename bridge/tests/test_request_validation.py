@@ -46,6 +46,10 @@ def _valid_payloads() -> dict[str, dict[str, object]]:
             "string_addr": "0x00200000",
             "limit": 2,
         },
+        "/api/strings_compact.json": {
+            "limit": 3,
+            "offset": 0,
+        },
         "/api/mmio_annotate.json": {
             "function_addr": "0x00007000",
             "dry_run": True,
