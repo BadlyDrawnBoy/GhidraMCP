@@ -114,6 +114,11 @@
       "status": "done",
       "commit": "6ebf303",
       "updated_at": "2025-10-30T12:19:15+00:00"
+    },
+    "STRINGS-COMPACT": {
+      "status": "todo",
+      "commit": null,
+      "updated_at": null
     }
   }
 }

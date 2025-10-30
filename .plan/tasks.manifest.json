@@ -151,6 +151,13 @@
       "after": [
         "DOCS-BOOTSTRAP"
       ]
+    },
+    {
+      "id": "STRINGS-COMPACT",
+      "title": "Compact strings/xrefs view",
+      "after": [
+        "STRINGS-ASSERTS"
+      ]
     }
   ]
 }
