@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Iterable, Tuple
 from urllib.request import urlopen
 
-DEFAULT_TAG = "Ghidra_11.3.2_build"
+DEFAULT_TAG = "Ghidra_11.4.2_build"
 GITHUB_RELEASES_API = "https://api.github.com/repos/NationalSecurityAgency/ghidra/releases/tags/{tag}"
 
 # Each tuple is (zip member path suffix, destination filename)

@@ -185,3 +185,5 @@ summary so you can see which tasks produced usable data versus `NON_JSON`/`INVAL
 ## Acknowledgements
 
 Huge thanks to Laurie Wired for open-sourcing the original GhidraMCP project. Without that foundation this experiment would not exist—even if the current state is wildly different from upstream.
+
+Tested with **Ghidra 11.4.2**.
