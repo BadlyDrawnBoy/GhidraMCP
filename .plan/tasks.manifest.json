@@ -2,6 +2,11 @@
   "version": 1,
   "sequence": [
     {
+      "id": "OPENAPI-FREEZE",
+      "title": "Guard OpenAPI snapshot",
+      "after": []
+    },
+    {
       "id": "API-MOUNT",
       "title": "Mount deterministic routes & register MCP tools",
       "after": []

@@ -5,6 +5,11 @@ set -euo pipefail
 sha() { git log -n1 --format='%h' -- "$@" 2>/dev/null || true; }
 
 # 1) Collect SHAs per task (nur Files, die den Task wirklich belegen)
+OPENAPI_FREEZE_SHA=$(sha \
+  README.md \
+  bridge/tests/golden/data/openapi_snapshot.json \
+  bridge/tests/golden/test_openapi_snapshot.py)
+
 API_MOUNT_SHA=$(sha \
   bridge/api/routes.py \
   bridge/api/tools.py \
@@ -78,6 +83,7 @@ update() {
   echo "✓ $id → $sha_val"
 }
 
+update OPENAPI-FREEZE   "$OPENAPI_FREEZE_SHA"
 update API-MOUNT        "$API_MOUNT_SHA"
 update JT-SCAN          "$JT_SCAN_SHA"
 update JT-SCAN-CONSISTENCY "$JT_SCAN_CONSISTENCY_SHA"

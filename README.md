@@ -130,6 +130,7 @@ needed:
 - `GHIDRA_MCP_MAX_ITEMS_PER_BATCH` – Maximum number of items processed per deterministic batch (default: `256`).
 - `MCP_MAX_LINES_SOFT`, `MCP_MAX_ITEMS_SOFT`, `MCP_MAX_ITEMS_HARD` – Legacy bridge safeguards controlling response truncation.
 - `UPDATE_GOLDEN_SNAPSHOTS` – Enable (`1`) to refresh golden files while developing tests.
+- `UPDATE_SNAPSHOTS` – Set to `1` to refresh the OpenAPI contract snapshot when it changes intentionally.
 - `BRIDGE_OPTIONAL_ADAPTERS` – Comma-separated list of optional architecture adapters to enable (e.g. `x86`).
   Leave unset to keep the default ARM/Thumb baseline without importing additional adapters.
 
@@ -143,6 +144,12 @@ pytest
 
 The repository ships with contract, golden and unit tests covering the deterministic bridge paths. A clean checkout should pass
 all tests before you push or open a PR.
+
+When the OpenAPI contract changes on purpose, refresh the snapshot and commit the updated file:
+
+```bash
+UPDATE_SNAPSHOTS=1 pytest -q bridge/tests/golden/test_openapi_snapshot.py
+```
 
 ## Contribution workflow (single-branch policy)
 

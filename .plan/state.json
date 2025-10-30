@@ -5,6 +5,11 @@
     "updated_at": null
   },
   "tasks": {
+    "OPENAPI-FREEZE": {
+      "status": "todo",
+      "commit": null,
+      "updated_at": null
+    },
     "API-MOUNT": {
       "status": "done",
       "commit": "25b8788",

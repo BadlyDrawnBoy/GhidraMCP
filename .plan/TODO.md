@@ -16,6 +16,10 @@
 
 ---
 
+## -1) ✅ OPENAPI-FREEZE — Guard OpenAPI snapshot (ID: OPENAPI-FREEZE)
+**DoD:** Add golden snapshot + drift test for `/openapi.json`; README documents `UPDATE_SNAPSHOTS`. _commit: afcc857_
+**What changed:** Snapshot `/openapi.json`, guard drift in golden test, and document update flag.
+
 ## 0) ☑ SYNC-STATE — Keep plan files in lockstep (ID: SYNC-STATE)
 Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. A tiny check ensures mismatch fails.
 **DoD:** _commit: 6b0d8b9_ `python -m pytest -q tests/plan/test_state_sync.py` green.
