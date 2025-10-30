@@ -132,6 +132,13 @@
       "after": [
         "SCHEMA-STRICT"
       ]
+    },
+    {
+      "id": "DEVSERVER-ENTRYPOINT",
+      "title": "Provide uvicorn entrypoint",
+      "after": [
+        "API-MOUNT"
+      ]
     }
   ]
 }
