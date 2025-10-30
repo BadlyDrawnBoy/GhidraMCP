@@ -130,6 +130,8 @@ needed:
 - `GHIDRA_MCP_MAX_ITEMS_PER_BATCH` – Maximum number of items processed per deterministic batch (default: `256`).
 - `MCP_MAX_LINES_SOFT`, `MCP_MAX_ITEMS_SOFT`, `MCP_MAX_ITEMS_HARD` – Legacy bridge safeguards controlling response truncation.
 - `UPDATE_GOLDEN_SNAPSHOTS` – Enable (`1`) to refresh golden files while developing tests.
+- `BRIDGE_OPTIONAL_ADAPTERS` – Comma-separated list of optional architecture adapters to enable (e.g. `x86`).
+  Leave unset to keep the default ARM/Thumb baseline without importing additional adapters.
 
 ## Running the test suite
 

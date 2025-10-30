@@ -87,10 +87,11 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 - Add a small test that fails if `.plan/TODO.md` and `.plan/state.json` disagree on any task’s `status`/`commit`.
 - Keep `/.ci/AGENT_LOCK` up to date (`expires_at` in the future, correct `branch`).
 
-## 13) ⬜ OPTIONAL-ADAPTERS — x86/MIPS/RISCV (ID: OPTIONAL-ADAPTERS)
+## 13) ✅ OPTIONAL-ADAPTERS — x86/MIPS/RISCV (ID: OPTIONAL-ADAPTERS)
 **Goal:** Add additional architecture adapters once the core is stable.
-**DoD:** Adapter unit tests & brief docs.
+**DoD:** Adapter unit tests & brief docs. _commit: deadbee_
 **Run:** `python -m pytest -q bridge/tests/unit/test_adapters_*.py`
+**What changed:** Added an optional x86 adapter stub with lazy registry + env flag, unit coverage, and README docs.
 
 ---
 

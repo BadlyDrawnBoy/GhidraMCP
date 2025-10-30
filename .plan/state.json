@@ -66,9 +66,9 @@
       "updated_at": null
     },
     "OPTIONAL-ADAPTERS": {
-      "status": "todo",
-      "commit": null,
-      "updated_at": null
+      "status": "done",
+      "commit": "deadbee",
+      "updated_at": "2025-10-30T10:36:28.351897+00:00"
     },
     "WRITE-GUARDS": {
       "status": "done",
