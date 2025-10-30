@@ -6,6 +6,9 @@ from typing import Callable
 
 from mcp.server.fastmcp import FastMCP
 from starlette.applications import Starlette
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+from starlette.routing import Route
 
 from .api.routes import make_routes
 from .api.tools import register_tools
@@ -15,6 +18,32 @@ from .utils.logging import configure_root
 MCP_SERVER = FastMCP("ghidra-bridge")
 _ghidra_server_url = os.getenv("GHIDRA_SERVER_URL", "http://127.0.0.1:8080/")
 _CONFIGURED = False
+
+
+def _build_openapi_schema(routes: list[Route]) -> dict[str, object]:
+    paths: dict[str, dict[str, object]] = {}
+    for route in routes:
+        # Only document standard HTTP routes.
+        if not isinstance(route, Route):  # pragma: no cover - defensive
+            continue
+        if route.path == "/openapi.json":
+            continue
+        methods = sorted(route.methods or set())
+        if not methods:
+            continue
+        operations = paths.setdefault(route.path, {})
+        for method in methods:
+            operations[method.lower()] = {
+                "summary": route.name or getattr(route.endpoint, "__name__", "handler"),
+            }
+    return {
+        "openapi": "3.1.0",
+        "info": {
+            "title": "Ghidra MCP Bridge API",
+            "version": "1.0.0",
+        },
+        "paths": paths,
+    }
 
 
 def set_ghidra_base_url(url: str) -> None:
@@ -39,8 +68,30 @@ def configure() -> None:
 
 def build_api_app() -> Starlette:
     configure()
-    routes = make_routes(_client_factory)
+    routes = list(make_routes(_client_factory))
+    schema = _build_openapi_schema(routes)
+
+    async def openapi(_: Request) -> JSONResponse:
+        return JSONResponse(schema)
+
+    routes.append(Route("/openapi.json", openapi, methods=["GET"], name="openapi"))
     return Starlette(routes=routes)
 
 
-__all__ = ["MCP_SERVER", "configure", "build_api_app", "set_ghidra_base_url"]
+def create_app() -> Starlette:
+    """Factory compatible with ``uvicorn --factory``."""
+
+    return build_api_app()
+
+
+app = build_api_app()
+
+
+__all__ = [
+    "MCP_SERVER",
+    "app",
+    "build_api_app",
+    "configure",
+    "create_app",
+    "set_ghidra_base_url",
+]

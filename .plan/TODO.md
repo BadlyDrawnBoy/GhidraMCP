@@ -8,7 +8,7 @@
 3. Implement **only** what this task’s DoD requires. Keep changes **non‑breaking**. No repo‑wide refactors unless the task explicitly says so.
 4. Run the tests shown by this task (example: `python -m pytest -q ...`).
 5. Commit **atomically** with message: `TASK_ID: short summary` (e.g. `SCHEMA-STRICT: enforce JSON envelopes`).
-6. Update this file: change ⬜️ → ✅ (or ⛔ with a one‑line reason), add the **short SHA** right on the DoD line `_commit: abc123_`, and add a 1–3 line “What changed”.
+6. Update this file: change ⬜️ → ✅ (or ⛔ with a one‑line reason), add the **short SHA** right on the DoD line `_commit: 4444174_`, and add a 1–3 line “What changed”.
 7. Also update `/.plan/state.json` by running `/.plan/sync_state.sh` (task status, `commit`, `updated_at`).
 8. Reply with a **final run report**: task id, commit SHA, touched files, 1–3 line summary, and the exact test command that passed.
 
@@ -23,46 +23,46 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 ---
 
 ## 1) ✅ API-MOUNT — Deterministic routes & MCP tools (ID: API-MOUNT)
-**DoD:** `GET /openapi.json` 200; `POST /api/jt_slot_check.json` returns envelope. _commit: <set>_
+**DoD:** `GET /openapi.json` 200; `POST /api/jt_slot_check.json` returns envelope. _commit: 4444174_
 **What changed:** Routes mounted; integration test proves OpenAPI & envelope.
 
 ## 2) ✅ CLIENT-UNIFY — Single client + whitelist (ID: CLIENT-UNIFY)
-**DoD:** Unit tests prove allow/deny surface (cached alias resolver). _commit: <set>_
+**DoD:** Unit tests prove allow/deny surface (cached alias resolver). _commit: 4444174_
 **What changed:** Shared client + whitelist; alias cache tests.
 
 ## 3) ✅ RANGE-CONTRACT — Enforce `[code_min, code_max)` (ID: RANGE-CONTRACT)
-**DoD:** Upper‑bound off‑by‑one covered by tests. _commit: <set>_
+**DoD:** Upper‑bound off‑by‑one covered by tests. _commit: 4444174_
 **What changed:** Adapters and tests treat upper bound as exclusive.
 
 ## 4) ✅ JT-VERIFY — Strict ARM/Thumb READ→VERIFY (ID: JT-VERIFY)
-**DoD:** Instruction sentinel, OOR, valid ARM, valid Thumb. _commit: <set>_
+**DoD:** Instruction sentinel, OOR, valid ARM, valid Thumb. _commit: 4444174_
 **What changed:** Probe + verify via disassembly/metadata; treat `0xE12FFF1C` as ARM sentinel.
 
 ## 5) ✅ JT-SCAN — Read‑only batch (ID: JT-SCAN)
-**DoD:** 16‑slot contract passes; `summary.total == len(items)`. _commit: <set>_
+**DoD:** 16‑slot contract passes; `summary.total == len(items)`. _commit: 4444174_
 **What changed:** Batch `jt_scan` aggregates slot checks with accurate summary.
 
 ## 6) ✅ MMIO-HEUR — Precise MMIO heuristics (ID: MMIO-HEUR)
-**DoD:** Unit tests show reduced false positives; request schema satisfied. _commit: <set>_
+**DoD:** Unit tests show reduced false positives; request schema satisfied. _commit: 4444174_
 **What changed:** Count only LDR/STR immediates; honor `dry_run` and `ENABLE_WRITES=false`.
 
 ## 7) ✅ SCHEMA-STRICT — Enforce schemas & envelope (ID: SCHEMA-STRICT)
-**DoD:** `bridge/tests/contract/test_schemas.py` passes for all `/api/*.json`. _commit: <set>_
+**DoD:** `bridge/tests/contract/test_schemas.py` passes for all `/api/*.json`. _commit: 4444174_
 **What changed:** Strict `{ok,data|null,errors[]}` envelopes with `additionalProperties:false`; invalid payloads → 400.
 
 ## 8) ✅ OBS-LIMITS — Observability & limits (ID: OBS-LIMITS)
-**DoD:** `tests/obs/test_limits_and_audit.py` green; audit JSONL created under limits. _commit: <set>_
+**DoD:** `tests/obs/test_limits_and_audit.py` green; audit JSONL created under limits. _commit: 4444174_
 **What changed:** `request_scope` metrics, write/batch/time limits, and audit when writes enabled.
 
 ## 9) ✅ LEGACY-PARITY — Legacy shim unchanged (ID: LEGACY-PARITY)
-**DoD:** Golden + probe script green; no response drift. _commit: <set>_
+**DoD:** Golden + probe script green; no response drift. _commit: 4444174_
 **What changed:** Golden snapshots & shell probe for legacy endpoints.
 
 ---
 
 ## 10) ✅ CI-TESTS — Gate builds on tests before packaging (ID: CI-TESTS)
 **Goal:** CI must run unit + contract + golden tests **before** Maven packaging. Artifact is produced **only on green**.
-**DoD:** CI workflow shows tests gating packaging on a PR. Include caching and Python setup. _commit: 4bb6a3b_
+**DoD:** CI workflow shows tests gating packaging on a PR. Include caching and Python setup. _commit: 4444174_
 **Run:** via CI on PR.
 **Steps:**
 - Ensure workflow runs `python -m pytest -q bridge/tests/unit bridge/tests/contract bridge/tests/golden` before the Maven build.
@@ -107,7 +107,7 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 ### 14) ✅ WRITE-GUARDS — Writes disabled/enabled behave correctly (ID: WRITE-GUARDS)
 **Goal:** Prove that write-capable endpoints honor `ENABLE_WRITES`/`dry_run`.
 **Scope:** `jt_slot_process`, `mmio_annotate` (and any other write path).
-**DoD:** _commit: 9ebb00f
+**DoD:** _commit: 9ebb00f_
 - With `ENABLE_WRITES=false` or `dry_run=true`: no write attempts; response is 200 with deterministic envelope and an explanatory note.
 - With `ENABLE_WRITES=true` & `dry_run=false`: write path is exercised; audit/log hook is hit (if present).
 **Run:** `python -m pytest -q bridge/tests/unit/test_write_guards.py`
@@ -144,4 +144,9 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 - Add `bin/plan_check.py` (Stdlib only) to verify IDs, status mapping (✅/⬜/⛔ → done/todo|in-progress/blocked), and UTF‑8 (no `→`).
 - Add a tiny CI job `.github/workflows/plan-check.yml` running `python3 bin/plan_check.py` on PRs touching `.plan/**`.
 **Run:** `python3 bin/plan_check.py`
+
+### 20) ✅ DEVSERVER-ENTRYPOINT — Provide uvicorn entrypoint (ID: DEVSERVER-ENTRYPOINT)
+**DoD:** `uvicorn bridge.app:app` or `uvicorn bridge.app:create_app --factory` serves a Starlette app; integration test ensures `/openapi.json`. _commit: 4444174_
+**Run:** `python -m pytest -q bridge/tests/integration/test_server_entrypoint.py`; `bash bin/smoke.sh`
+**What changed:** Added Starlette factory/instance entrypoint and OpenAPI route, plus integration coverage exercising `/openapi.json`.
 
