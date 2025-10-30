@@ -8,27 +8,27 @@
     "API-MOUNT": {
       "status": "done",
       "commit": "25b8788",
-      "updated_at": "2025-10-30T01:57:24+01:00"
+      "updated_at": "2025-10-30T02:24:09+00:00"
     },
     "CLIENT-UNIFY": {
       "status": "done",
       "commit": "2d3b1d0",
-      "updated_at": "2025-10-30T01:57:24+01:00"
+      "updated_at": "2025-10-30T02:24:09+00:00"
     },
     "RANGE-CONTRACT": {
       "status": "done",
       "commit": "844252e",
-      "updated_at": "2025-10-30T01:57:24+01:00"
+      "updated_at": "2025-10-30T02:24:09+00:00"
     },
     "JT-VERIFY": {
       "status": "done",
       "commit": "844252e",
-      "updated_at": "2025-10-30T01:57:24+01:00"
+      "updated_at": "2025-10-30T02:24:09+00:00"
     },
     "JT-SCAN": {
       "status": "done",
       "commit": "0a8279f",
-      "updated_at": "2025-10-30T01:57:24+01:00"
+      "updated_at": "2025-10-30T02:24:09+00:00"
     },
     "MMIO-HEUR": {
       "status": "done",
@@ -53,12 +53,12 @@
     "CI-TESTS": {
       "status": "done",
       "commit": "c79666e",
-      "updated_at": "2025-10-30T01:57:24+01:00"
+      "updated_at": "2025-10-30T02:24:09+00:00"
     },
     "DOCS-BOOTSTRAP": {
-      "status": "todo",
-      "commit": null,
-      "updated_at": null
+      "status": "done",
+      "commit": "b572f6f",
+      "updated_at": "2025-10-30T02:23:59.688919+00:00"
     },
     "CONTROL-FILES": {
       "status": "todo",
@@ -78,17 +78,17 @@
     "SSE-HANDSHAKE": {
       "status": "done",
       "commit": "891692b",
-      "updated_at": "2025-10-30T01:57:24+01:00"
+      "updated_at": "2025-10-30T02:24:09+00:00"
     },
     "JT-SCAN-CONSISTENCY": {
       "status": "done",
       "commit": "0a8279f",
-      "updated_at": "2025-10-30T01:57:24+01:00"
+      "updated_at": "2025-10-30T02:24:09+00:00"
     },
     "STRINGS-ASSERTS": {
       "status": "done",
-      "commit": "5cd5ef6",
-      "updated_at": "2025-10-30T01:57:24+01:00"
+      "commit": "<set>",
+      "updated_at": "2025-10-30T02:24:09+00:00"
     },
     "SNAPSHOT-SAFEGUARD": {
       "status": "done",

@@ -8,6 +8,17 @@
 
 I have absolutely **no idea** what I am doing here. The entire codebase, documentation, and direction are produced by AI assistants, and I am mostly along for the ride. Treat every commit with caution and double-check before trusting it in your workflow.
 
+## Quickstart
+
+For a fast sanity check against a running local instance, point the smoke script at the shim base URL and run it:
+
+```bash
+export BASE_URL=http://127.0.0.1:8081
+bash bin/smoke.sh
+```
+
+The script exercises `/api/health.json` and a representative POST endpoint; it prints `SMOKE OK` when both succeed.
+
 ## What this repository contains now
 
 * A Model Context Protocol (MCP) bridge that talks to a Ghidra HTTP plugin.

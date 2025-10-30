@@ -69,13 +69,14 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 - Fail the job on test or schema drift; upload artifacts only if tests pass.
 **What changed:** GitHub Actions installs cached Python deps, runs the unit/contract/golden suites ahead of Maven, and requires the test job to succeed before packaging.
 
-## 11) ⬜ DOCS-BOOTSTRAP — Developer quickstart & smoke (ID: DOCS-BOOTSTRAP)
+## 11) ✅ DOCS-BOOTSTRAP — Developer quickstart & smoke (ID: DOCS-BOOTSTRAP)
 **Goal:** New machine → green smoke in minutes.
-**DoD:** README quickstart (ports: `8081` shim, `8099` SSE; `/api/health.json`), `.env.sample`, and `bin/smoke.sh` that hits health + a sample POST.
+**DoD:** README quickstart (ports: `8081` shim, `8099` SSE; `/api/health.json`), `.env.sample`, and `bin/smoke.sh` that hits health + a sample POST. _commit: b572f6f_
 **Run:** `bin/smoke.sh`
 **Steps:**
 - Expand README with venv steps, server flags, curl examples, and troubleshooting.
 - Provide `bin/smoke.sh` to: start server (if not running), `GET /api/health.json`, and one deterministic POST (e.g., `jt_slot_check`).
+**What changed:** Added README quickstart showing BASE_URL and smoke invocation; ensured `bin/smoke.sh` remains executable.
 
 ## 12) ⬜ CONTROL-FILES — Orchestrate Codex sessions (ID: CONTROL-FILES)
 **Goal:** Make plan files authoritative and self‑healing.
