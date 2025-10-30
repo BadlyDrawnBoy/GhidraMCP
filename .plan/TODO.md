@@ -18,7 +18,7 @@
 
 ## 0) ☑ SYNC-STATE — Keep plan files in lockstep (ID: SYNC-STATE)
 Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. A tiny check ensures mismatch fails.
-**DoD:** `python -m pytest -q tests/plan/test_state_sync.py` green.
+**DoD:** _commit: 6b0d8b9_ `python -m pytest -q tests/plan/test_state_sync.py` green.
 
 ---
 
