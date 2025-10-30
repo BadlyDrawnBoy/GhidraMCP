@@ -59,6 +59,19 @@ class StubGhidraClient:
                 0x0010001C,
             )
         ]
+        self._strings: List[Dict[str, object]] = [
+            {
+                "literal": "Error: invalid checksum\n(retry)",
+                "address": 0x00200000,
+                "refs": 8,
+            },
+            {"literal": "Boot complete", "address": 0x00200030, "refs": 2},
+            {
+                "literal": "Status: ready for commands",
+                "address": 0x00200010,
+                "refs": 4,
+            },
+        ]
 
     def read_dword(self, address: int) -> Optional[int]:
         index = (address - self._jt_base) // 4
@@ -111,6 +124,15 @@ class StubGhidraClient:
 
     def set_disassembly_comment(self, address: int, comment: str) -> bool:
         return True
+
+    def list_strings_compact(
+        self, *, limit: int = 50, offset: int = 0
+    ) -> List[Dict[str, object]]:
+        if limit < 0:
+            limit = 0
+        start = max(offset, 0)
+        end = start + limit
+        return [dict(entry) for entry in self._strings[start:end]]
 
     def close(self) -> None:
         return None

@@ -39,6 +39,7 @@ Because the refactor is still underway, you will find both the legacy `bridge_mc
 | `jt_verify` legacy RPC | Folded into `/api/jt_slot_process.json` verification phase | Write guard enforces `dry_run`/`ENABLE_WRITES`; verification happens before rename/comment commits. |
 | `mmio_annotate` | `/api/mmio_annotate.json` (`mmio_annotate_compact` tool) | Deterministic envelope with capped samples and explicit dry-run behaviour. |
 | `strings` / string xrefs | `/api/string_xrefs.json` (`string_xrefs_compact` tool) | Enveloped response with batched disassembly contexts and limit tracking. |
+| `strings` summary (compact) | `/api/strings_compact.json` (`strings_compact` tool) | Truncated literals (`≤120` chars) with deterministic xref counts; `total == len(items)`. |
 | `rename_function` | `/api/jt_slot_process.json` writes | Guarded by write limits/audit logging; requires writes enabled and `dry_run=false`. |
 | `set_decompiler_comment` | `/api/jt_slot_process.json` writes | Shares the same write guard + audit path as deterministic rename. |
 | Misc legacy health/info | `/api/health.json`, `/openapi.json` | Both now return deterministic envelopes and are covered by snapshot tests. |
@@ -80,6 +81,7 @@ shared `envelope.v1.json` wrapper.
 | `/api/jt_slot_process.json`, `jt_slot_process` | Rename + annotate a jump-table target (honours `dry_run` and write limits). |
 | `/api/jt_scan.json`, `jt_scan` | Batch slot checks with deterministic summaries (`total`, `valid`, `invalid`). |
 | `/api/string_xrefs.json`, `string_xrefs_compact` | Return compact caller/xref context with accurate counts. |
+| `/api/strings_compact.json`, `strings_compact` | Summarise strings with truncated literals and deterministic xref counters. |
 | `/api/mmio_annotate.json`, `mmio_annotate_compact` | Analyse MMIO access patterns with capped samples. |
 
 Example request (local shim):
