@@ -156,3 +156,7 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 **Run:** `python -m pytest -q bridge/tests/integration/test_server_entrypoint.py`; `bash bin/smoke.sh`
 **What changed:** Added Starlette factory/instance entrypoint and OpenAPI route, plus integration coverage exercising `/openapi.json`.
 
+### 21) ✅ README-LEGACY-MAP — Legacy map & quickstart (ID: README-LEGACY-MAP)
+**DoD:** README documents mapping between legacy objects and new deterministic endpoints; quickstart reaches shim + sample request in ≤3 commands. _commit: 6ebf303_
+**What changed:** Added "Legacy ↔ Bridge mapping" section outlining envelopes, batching, and write guards, and rewrote the quickstart with a three-command flow.
+

@@ -144,6 +144,13 @@
       "after": [
         "API-MOUNT"
       ]
+    },
+    {
+      "id": "README-LEGACY-MAP",
+      "title": "Legacy map & quickstart",
+      "after": [
+        "DOCS-BOOTSTRAP"
+      ]
     }
   ]
 }
