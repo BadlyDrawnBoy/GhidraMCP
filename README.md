@@ -10,14 +10,15 @@ I have absolutely **no idea** what I am doing here. The entire codebase, documen
 
 ## Quickstart
 
-For a fast sanity check against a running local instance, point the smoke script at the shim base URL and run it:
+With the deterministic shim listening on **8081** (HTTP) and the SSE transport on **8099**, you can sanity-check a local
+instance by pointing the smoke script at the shim base URL:
 
 ```bash
 export BASE_URL=http://127.0.0.1:8081
 bash bin/smoke.sh
 ```
 
-The script exercises `/api/health.json` and a representative POST endpoint; it prints `SMOKE OK` when both succeed.
+The script hits `/api/health.json` and a representative POST endpoint, printing `SMOKE OK` when both succeed.
 
 ## What this repository contains now
 
