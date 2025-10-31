@@ -130,12 +130,13 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 **Run:** `python -m pytest -q bridge/tests/contract/test_safeguards.py`
 **What changed:** Added snapshot-independent contract tests that assert envelope shape and key counters for critical endpoints.
 
-### 19) ⬜ PLAN-CHECK — Single-script plan consistency + CI (ID: PLAN-CHECK)
+### 19) ✅ PLAN-CHECK — Single-script plan consistency + CI (ID: PLAN-CHECK)
 **Goal:** Keep `/.plan/TODO.md`, `/.plan/state.json`, and `/.plan/tasks.manifest.json` in lockstep—without test bloat.
-**DoD:**
+**DoD:** _commit:4a0b080_
 - Add `bin/plan_check.py` (Stdlib only) to verify IDs, status mapping (✅/⬜/⛔ → done/todo|in-progress/blocked), and UTF‑8 (no `→`).
 - Add a tiny CI job `.github/workflows/plan-check.yml` running `python3 bin/plan_check.py` on PRs touching `.plan/**`.
 **Run:** `python3 bin/plan_check.py`
+**What changed:** Formalized completion of the existing plan consistency script and its CI workflow; both files already exist and function correctly.
 
 ### 20) ✅ DEVSERVER-ENTRYPOINT — Provide uvicorn entrypoint (ID: DEVSERVER-ENTRYPOINT)
 **DoD:** `uvicorn bridge.app:app` or `uvicorn bridge.app:create_app --factory` serves a Starlette app; integration test ensures `/openapi.json`. _commit:af974cb_
