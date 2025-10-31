@@ -180,6 +180,21 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 **Run:** `python -m pytest -q bridge/tests/contract/test_function_search.py`
 **What changed:** Added a fully-featured, tested, and schema-validated endpoint for searching functions. The implementation correctly fetches all results from the backend before applying pagination in Python and includes rich metadata in the response to enable intelligent querying by LLMs.
 
+### 25) ⬜ SEARCH-IMPORTS-ENDPOINT — Dedicated endpoint for searching imports (ID: SEARCH-IMPORTS-ENDPOINT)
+**Goal:** Implement server-side search for imported symbols.
+**DoD:** Create a new `/api/search_imports.json` endpoint. This will likely require modifying the `listImports` method in `GhidraMCPPlugin.java` to accept a `filter` parameter and apply it before pagination. Follow the established pattern for implementation (schemas, tests, etc.).
+**Run:** `python -m pytest -q bridge/tests/contract/test_import_search.py`
+
+### 26) ⬜ SEARCH-EXPORTS-ENDPOINT — Dedicated endpoint for searching exports (ID: SEARCH-EXPORTS-ENDPOINT)
+**Goal:** Implement server-side search for exported symbols.
+**DoD:** Create a new `/api/search_exports.json` endpoint. This will require modifying the `listExports` method in `GhidraMCPPlugin.java` to accept a `filter` parameter. Follow the established pattern.
+**Run:** `python -m pytest -q bridge/tests/contract/test_export_search.py`
+
+### 27) ⬜ SEARCH-XREFS-ENDPOINT — Dedicated endpoint for searching cross-references (ID: SEARCH-XREFS-ENDPOINT)
+**Goal:** Implement server-side search for cross-references to a given address.
+**DoD:** Create a new `/api/search_xrefs_to.json` endpoint. This will require modifying the `getXrefsTo` method in `GhidraMCPPlugin.java` to accept a `filter` parameter to search within the context of the references. Follow the established pattern.
+**Run:** `python -m pytest -q bridge/tests/contract/test_xref_search.py`
+
 ### Notes for the current run
 - If a task is already implemented, still write the short “What changed” line and attach the short SHA.
 - Keep **all** responses deterministic: never return fields outside the schema, always wrap in the standard envelope.

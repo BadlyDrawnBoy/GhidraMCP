@@ -1,134 +1,149 @@
 {
-  "pr": {
-    "branch": "feature/deterministic-bridge",
-    "number": null,
-    "updated_at": null
-  },
-  "tasks": {
-    "API-MOUNT": {
-      "commit": "b1554dc",
-      "status": "done",
-      "updated_at": "2025-10-31T05:09:04+01:00"
-    },
-    "CI-TESTS": {
-      "commit": "c79666e",
-      "status": "done",
-      "updated_at": "2025-10-31T05:09:04+01:00"
-    },
-    "CLIENT-UNIFY": {
-      "commit": "2d3b1d0",
-      "status": "done",
-      "updated_at": "2025-10-31T05:09:04+01:00"
-    },
-    "CONTROL-FILES": {
-      "commit": "a74a426",
-      "status": "done",
-      "updated_at": "2025-10-31T00:28:24.686639+00:00"
-    },
-    "DEVSERVER-ENTRYPOINT": {
-      "commit": "4444174",
-      "status": "done",
-      "updated_at": "2025-10-30T01:59:38.984625+00:00"
-    },
-    "DOCS-BOOTSTRAP": {
-      "commit": "1ea67bf",
-      "status": "done",
-      "updated_at": "2025-10-30T02:45:47+00:00"
-    },
-    "JT-SCAN": {
-      "commit": "b1554dc",
-      "status": "done",
-      "updated_at": "2025-10-31T05:09:04+01:00"
-    },
-    "JT-SCAN-CONSISTENCY": {
-      "commit": "b1554dc",
-      "status": "done",
-      "updated_at": "2025-10-31T05:09:04+01:00"
-    },
-    "JT-VERIFY": {
-      "commit": "844252e",
-      "status": "done",
-      "updated_at": "2025-10-31T05:09:04+01:00"
-    },
-    "LEGACY-PARITY": {
-      "commit": "e024c15",
-      "status": "done",
-      "updated_at": "2025-10-29T01:05:57.675650+00:00"
-    },
-    "MMIO-HEUR": {
-      "commit": "641ecf7",
-      "status": "done",
-      "updated_at": "2025-10-28T01:02:33+00:00"
-    },
-    "OBS-LIMITS": {
-      "commit": "08d9bd3",
-      "status": "done",
-      "updated_at": "2025-10-28T01:17:13+00:00"
-    },
-    "OPENAPI-FREEZE": {
-      "commit": "b1554dc",
-      "status": "done",
-      "updated_at": "2025-10-31T05:09:04+01:00"
-    },
-    "OPTIONAL-ADAPTERS": {
-      "commit": "deadbee",
-      "status": "done",
-      "updated_at": "2025-10-30T10:36:28.351897+00:00"
-    },
-    "PLAN-CHECK": {
-      "commit": "4a0b080",
-      "status": "done",
-      "updated_at": "2025-10-31T05:15:55+01:00"
-    },
-    "RANGE-CONTRACT": {
-      "commit": "844252e",
-      "status": "done",
-      "updated_at": "2025-10-31T05:09:04+01:00"
-    },
-    "README-LEGACY-MAP": {
-      "commit": "6ebf303",
-      "status": "done",
-      "updated_at": "2025-10-30T12:19:15+00:00"
-    },
-    "SCHEMA-STRICT": {
-      "commit": "2ed15d3",
-      "status": "done",
-      "updated_at": "2025-10-28T01:21:10+01:00"
-    },
-    "SEARCH-FUNCTIONS-ENDPOINT": {
-      "commit": "b1554dc",
-      "status": "done",
-      "updated_at": "2025-10-31T04:50:10+01:00"
-    },
-    "SEARCH-STRINGS-ENDPOINT": {
-      "commit": "cf6f65e",
-      "status": "done",
-      "updated_at": "2025-10-31T02:36:15.603186+00:00"
-    },
-    "SNAPSHOT-SAFEGUARD": {
-      "commit": "e217583",
-      "status": "done",
-      "updated_at": "2025-10-29T01:05:43.006161+00:00"
-    },
-    "SSE-HANDSHAKE": {
-      "commit": "af974cb",
-      "status": "done",
-      "updated_at": "2025-10-31T05:09:04+01:00"
-    },
-    "STRINGS-ASSERTS": {
-      "commit": "af974cb",
-      "status": "done",
-      "updated_at": "2025-10-31T05:09:04+01:00"
-    },
-    "STRINGS-COMPACT": {
-      "commit": "af974cb",
-      "status": "done",
-      "updated_at": "2025-10-30T20:10:59.912731+00:00"
-    },
-    "WRITE-GUARDS": {
-      "commit": "9ebb00f",
-      "status": "done",
-      "updated_at": "2025-10-28T22:29:19+00:00"
-    }
-  }
+   "pr":{
+      "branch":"feature/deterministic-bridge",
+      "number":null,
+      "updated_at":null
+   },
+   "tasks":{
+      "API-MOUNT":{
+         "commit":"b1554dc",
+         "status":"done",
+         "updated_at":"2025-10-31T05:09:04+01:00"
+      },
+      "CI-TESTS":{
+         "commit":"c79666e",
+         "status":"done",
+         "updated_at":"2025-10-31T05:09:04+01:00"
+      },
+      "CLIENT-UNIFY":{
+         "commit":"2d3b1d0",
+         "status":"done",
+         "updated_at":"2025-10-31T05:09:04+01:00"
+      },
+      "CONTROL-FILES":{
+         "commit":"a74a426",
+         "status":"done",
+         "updated_at":"2025-10-31T00:28:24.686639+00:00"
+      },
+      "DEVSERVER-ENTRYPOINT":{
+         "commit":"4444174",
+         "status":"done",
+         "updated_at":"2025-10-30T01:59:38.984625+00:00"
+      },
+      "DOCS-BOOTSTRAP":{
+         "commit":"1ea67bf",
+         "status":"done",
+         "updated_at":"2025-10-30T02:45:47+00:00"
+      },
+      "JT-SCAN":{
+         "commit":"b1554dc",
+         "status":"done",
+         "updated_at":"2025-10-31T05:09:04+01:00"
+      },
+      "JT-SCAN-CONSISTENCY":{
+         "commit":"b1554dc",
+         "status":"done",
+         "updated_at":"2025-10-31T05:09:04+01:00"
+      },
+      "JT-VERIFY":{
+         "commit":"844252e",
+         "status":"done",
+         "updated_at":"2025-10-31T05:09:04+01:00"
+      },
+      "LEGACY-PARITY":{
+         "commit":"e024c15",
+         "status":"done",
+         "updated_at":"2025-10-29T01:05:57.675650+00:00"
+      },
+      "MMIO-HEUR":{
+         "commit":"641ecf7",
+         "status":"done",
+         "updated_at":"2025-10-28T01:02:33+00:00"
+      },
+      "OBS-LIMITS":{
+         "commit":"08d9bd3",
+         "status":"done",
+         "updated_at":"2025-10-28T01:17:13+00:00"
+      },
+      "OPENAPI-FREEZE":{
+         "commit":"b1554dc",
+         "status":"done",
+         "updated_at":"2025-10-31T05:09:04+01:00"
+      },
+      "OPTIONAL-ADAPTERS":{
+         "commit":"deadbee",
+         "status":"done",
+         "updated_at":"2025-10-30T10:36:28.351897+00:00"
+      },
+      "PLAN-CHECK":{
+         "commit":"4a0b080",
+         "status":"done",
+         "updated_at":"2025-10-31T05:15:55+01:00"
+      },
+      "RANGE-CONTRACT":{
+         "commit":"844252e",
+         "status":"done",
+         "updated_at":"2025-10-31T05:09:04+01:00"
+      },
+      "README-LEGACY-MAP":{
+         "commit":"6ebf303",
+         "status":"done",
+         "updated_at":"2025-10-30T12:19:15+00:00"
+      },
+      "SCHEMA-STRICT":{
+         "commit":"2ed15d3",
+         "status":"done",
+         "updated_at":"2025-10-28T01:21:10+01:00"
+      },
+      "SEARCH-FUNCTIONS-ENDPOINT":{
+         "commit":"b1554dc",
+         "status":"done",
+         "updated_at":"2025-10-31T04:50:10+01:00"
+      },
+      "SEARCH-STRINGS-ENDPOINT":{
+         "commit":"cf6f65e",
+         "status":"done",
+         "updated_at":"2025-10-31T02:36:15.603186+00:00"
+      },
+      "SEARCH-IMPORTS-ENDPOINT":{
+         "commit":null,
+         "status":"todo",
+         "updated_at":null
+      },
+      "SEARCH-EXPORTS-ENDPOINT":{
+         "commit":null,
+         "status":"todo",
+         "updated_at":null
+      },
+      "SEARCH-XREFS-ENDPOINT":{
+         "commit":null,
+         "status":"todo",
+         "updated_at":null
+      },
+      "SNAPSHOT-SAFEGUARD":{
+         "commit":"e217583",
+         "status":"done",
+         "updated_at":"2025-10-29T01:05:43.006161+00:00"
+      },
+      "SSE-HANDSHAKE":{
+         "commit":"af974cb",
+         "status":"done",
+         "updated_at":"2025-10-31T05:09:04+01:00"
+      },
+      "STRINGS-ASSERTS":{
+         "commit":"af974cb",
+         "status":"done",
+         "updated_at":"2025-10-31T05:09:04+01:00"
+      },
+      "STRINGS-COMPACT":{
+         "commit":"af974cb",
+         "status":"done",
+         "updated_at":"2025-10-30T20:10:59.912731+00:00"
+      },
+      "WRITE-GUARDS":{
+         "commit":"9ebb00f",
+         "status":"done",
+         "updated_at":"2025-10-28T22:29:19+00:00"
+      }
+   }
 }

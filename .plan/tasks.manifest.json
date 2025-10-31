@@ -172,6 +172,27 @@
       "after": [
         "SEARCH-STRINGS-ENDPOINT"
       ]
+    },
+    {
+      "id": "SEARCH-IMPORTS-ENDPOINT",
+      "title": "Dedicated endpoint for searching imports",
+      "after": [
+        "SEARCH-FUNCTIONS-ENDPOINT"
+      ]
+    },
+    {
+      "id": "SEARCH-EXPORTS-ENDPOINT",
+      "title": "Dedicated endpoint for searching exports",
+      "after": [
+        "SEARCH-IMPORTS-ENDPOINT"
+      ]
+    },
+    {
+      "id": "SEARCH-XREFS-ENDPOINT",
+      "title": "Dedicated endpoint for searching cross-references",
+      "after": [
+        "SEARCH-EXPORTS-ENDPOINT"
+      ]
     }
   ]
 }
