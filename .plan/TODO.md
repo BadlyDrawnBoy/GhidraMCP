@@ -80,14 +80,15 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 - Provide `bin/smoke.sh` to: start server (if not running), `GET /api/health.json`, and one deterministic POST (e.g., `jt_slot_check`).
 **What changed:** Quickstart now calls out shim/SSE ports and points smoke.sh at `/api/health.json` for the sanity check.
 
-## 12) ⬜ CONTROL-FILES — Orchestrate Codex sessions (ID: CONTROL-FILES)
+## 12) ✅ CONTROL-FILES — Orchestrate Codex sessions (ID: CONTROL-FILES)
 **Goal:** Make plan files authoritative and self‑healing.
-**DoD:** Tests assert manifest UTF‑8 correctness and `.plan/state.json` sync; Codex follows `tasks.manifest.json` order.
+**DoD:** Tests assert manifest UTF‑8 correctness and `.plan/state.json` sync; Codex follows `tasks.manifest.json` order. _commit:a74a426_
 **Run:** `python -m pytest -q bridge/tests/plan/test_manifest_and_state.py`
 **Steps:**
 - **Fix UTF‑8** in `/.plan/tasks.manifest.json` (e.g., `READ→VERIFY`).
 - Add a small test that fails if `.plan/TODO.md` and `.plan/state.json` disagree on any task’s `status`/`commit`.
 - Keep `/.ci/AGENT_LOCK` up to date (`expires_at` in the future, correct `branch`).
+**What changed:** Extended manifest/state test to execute `bin/plan_check.py` and refreshed the agent lock.
 
 ## 13) ✅ OPTIONAL-ADAPTERS — x86/MIPS/RISCV (ID: OPTIONAL-ADAPTERS)
 **Goal:** Add additional architecture adapters once the core is stable.
