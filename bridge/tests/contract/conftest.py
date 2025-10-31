@@ -134,6 +134,15 @@ class StubGhidraClient:
         end = start + limit
         return [dict(entry) for entry in self._strings[start:end]]
 
+    def search_strings(self, query: str) -> List[Dict[str, object]]:
+        normalized = query.lower()
+        results: List[Dict[str, object]] = []
+        for entry in self._strings:
+            literal = str(entry.get("literal", ""))
+            if not normalized or normalized in literal.lower():
+                results.append(dict(entry))
+        return results
+
     def close(self) -> None:
         return None
 

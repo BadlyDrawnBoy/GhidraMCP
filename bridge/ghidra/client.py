@@ -1,6 +1,7 @@
 """HTTP client wrapper around the Ghidra MCP bridge plugin."""
 from __future__ import annotations
 
+import ast
 from dataclasses import dataclass, field
 import logging
 from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional
@@ -270,6 +271,35 @@ class GhidraClient:
                 continue
             out.append({"addr": addr_val, "context": context})
         return out
+
+    def search_strings(self, query: str) -> List[Dict[str, Any]]:
+        increment_counter("ghidra.search_strings")
+        lines = self._request_lines(
+            "GET",
+            "strings",
+            key="SEARCH_STRINGS",
+            params={"filter": query, "limit": 100000, "offset": 0},
+        )
+        if _is_error(lines):
+            return []
+        results: List[Dict[str, Any]] = []
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            address_part, _, literal_part = stripped.partition(":")
+            if not address_part:
+                continue
+            address = address_part.strip()
+            literal_text = literal_part.strip()
+            literal = literal_text
+            if literal_text:
+                try:
+                    literal = ast.literal_eval(literal_text)
+                except (ValueError, SyntaxError):
+                    literal = literal_text.strip('"')
+            results.append({"address": address, "literal": literal})
+        return results
 
     def rename_function(self, address: int, new_name: str) -> bool:
         increment_counter("ghidra.rename")

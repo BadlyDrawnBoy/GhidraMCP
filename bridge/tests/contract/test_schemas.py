@@ -70,6 +70,16 @@ _CASES: List[EndpointCase] = [
         missing="string_addr",
     ),
     EndpointCase(
+        id="search_strings",
+        path="/api/search_strings.json",
+        valid={
+            "query": "value",
+            "limit": 5,
+            "offset": 0,
+        },
+        missing="query",
+    ),
+    EndpointCase(
         id="strings_compact",
         path="/api/strings_compact.json",
         valid={
