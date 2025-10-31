@@ -199,6 +199,39 @@ def register_tools(
 
     @server.tool()
     @tool_client
+    def search_strings(
+        client,
+        query: str,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> Dict[str, object]:
+        request_payload = {"query": query, "limit": limit, "offset": offset}
+        valid, errors = validate_payload("search_strings.request.v1.json", request_payload)
+        if not valid:
+            return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+
+        try:
+            with request_scope(
+                "search_strings",
+                logger=logger,
+                extra={"tool": "search_strings"},
+            ):
+                data = strings.search_strings(
+                    client,
+                    query=query,
+                    limit=int(limit),
+                    offset=int(offset),
+                )
+        except SafetyLimitExceeded as exc:
+            return envelope_error(ErrorCode.SAFETY_LIMIT, str(exc))
+
+        valid, errors = validate_payload("search_strings.v1.json", data)
+        if not valid:
+            return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+        return envelope_ok(data)
+
+    @server.tool()
+    @tool_client
     def strings_compact(
         client,
         limit: int = 50,

@@ -2,11 +2,16 @@
 from __future__ import annotations
 
 import re
-from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from ..ghidra.client import GhidraClient
 from ..utils.hex import int_to_hex, parse_hex
-from ..utils.logging import enforce_batch_limit, increment_counter
+from ..utils.config import MAX_ITEMS_PER_BATCH
+from ..utils.logging import (
+    SafetyLimitExceeded,
+    enforce_batch_limit,
+    increment_counter,
+)
 
 
 _REGISTER_ARG_ORDER = {
@@ -178,6 +183,39 @@ def xrefs_compact(client: GhidraClient, *, string_addr: int, limit: int = 50) ->
     }
 
 
+def search_strings(
+    client: GhidraClient,
+    *,
+    query: str,
+    limit: int,
+    offset: int,
+) -> Dict[str, Any]:
+    window = limit + offset
+    if window > MAX_ITEMS_PER_BATCH:
+        raise SafetyLimitExceeded("strings.search.window", MAX_ITEMS_PER_BATCH, window)
+
+    all_entries = client.search_strings(query)
+    normalized = strings_compact_view(all_entries)
+    normalized_entries = normalized.get("items", [])
+
+    total_results = len(normalized_entries)
+    if limit <= 0:
+        page = 1
+    else:
+        page = offset // limit + 1
+    start_index = offset
+    end_index = offset + limit
+    paginated_items = normalized_entries[start_index:end_index]
+
+    return {
+        "query": query,
+        "total_results": total_results,
+        "page": page,
+        "limit": limit,
+        "items": paginated_items,
+    }
+
+
 _ELLIPSIS = "…"
 
 
@@ -255,4 +293,4 @@ def strings_compact_view(
     return {"total": len(items), "items": items}
 
 
-__all__ = ["strings_compact_view", "xrefs_compact"]
+__all__ = ["search_strings", "strings_compact_view", "xrefs_compact"]

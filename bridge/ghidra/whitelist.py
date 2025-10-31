@@ -33,6 +33,7 @@ DEFAULT_WHITELIST: Dict[str, Iterable[WhitelistEntry]] = {
             ("function_by_addr", "get_function_by_address", "functionMeta"),
         ),
         WhitelistEntry("GET", "GET_XREFS_TO", ("get_xrefs_to", "xrefs_to")),
+        WhitelistEntry("GET", "SEARCH_STRINGS", ("strings",)),
     ),
     "POST": (
         WhitelistEntry(

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:schema:search-strings.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "query",
+    "total_results",
+    "page",
+    "limit",
+    "items"
+  ],
+  "properties": {
+    "query": {"type": "string"},
+    "total_results": {"type": "integer", "minimum": 0},
+    "page": {"type": "integer", "minimum": 1},
+    "limit": {"type": "integer", "minimum": 1},
+    "items": {
+      "type": "array",
+      "items": {"$ref": "urn:schema:strings-compact.v1#/properties/items/items"}
+    }
+  }
+}
