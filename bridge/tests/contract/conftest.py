@@ -134,6 +134,18 @@ class StubGhidraClient:
         end = start + limit
         return [dict(entry) for entry in self._strings[start:end]]
 
+    def search_strings(
+        self, query: str, *, limit: int = 100, offset: int = 0
+    ) -> List[Dict[str, object]]:
+        _ = limit, offset  # intentionally ignored; pagination handled by caller
+        needle = query.lower()
+        results: List[Dict[str, object]] = []
+        for entry in self._strings:
+            literal = str(entry.get("literal", "")).lower()
+            if needle in literal:
+                results.append(dict(entry))
+        return results
+
     def close(self) -> None:
         return None
 

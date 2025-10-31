@@ -133,6 +133,18 @@ class GoldenStubGhidraClient:
         end = start + limit
         return [dict(entry) for entry in self._strings[start:end]]
 
+    def search_strings(
+        self, query: str, *, limit: int = 100, offset: int = 0
+    ) -> List[Dict[str, object]]:
+        _ = limit, offset
+        needle = query.lower()
+        matches: List[Dict[str, object]] = []
+        for entry in self._strings:
+            literal = str(entry.get("literal", "")).lower()
+            if needle in literal:
+                matches.append(dict(entry))
+        return matches
+
     def close(self) -> None:  # pragma: no cover - interface requirement
         return None
 

@@ -154,15 +154,16 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
     python -m pytest -q bridge/tests/contract/test_strings_compact_contract.py
     python3 bin/plan_check.py
 
-### 23) ⬜ SEARCH-STRINGS-ENDPOINT — Dedicated endpoint for searching all strings (ID: SEARCH-STRINGS-ENDPOINT)
+### 23) ✅ SEARCH-STRINGS-ENDPOINT — Dedicated endpoint for searching all strings (ID: SEARCH-STRINGS-ENDPOINT)
 **Goal:** Avoid information loss by searching the complete set of strings on the Ghidra side *before* applying pagination. This fixes a critical flaw where filtering only happens on a limited page of results.
-**DoD:**
+**DoD:** _commit:07eb50f_
 - A new endpoint `/api/search_strings.json` and a corresponding MCP tool `search_strings` are created.
 - The endpoint requires a `query` parameter and supports optional `limit` and `offset` for the *results*.
 - The implementation calls the Java plugin's `/strings` endpoint, passing the `query` as the `filter` URL parameter.
 - The response payload must include pagination metadata: `query`, `total_results`, `page`, and `limit`, in addition to the `items` list. This enables the LLM to make informed decisions about refining its search.
 - New JSON schemas (`search_strings.request.v1.json` and `search_strings.v1.json`) are created and used for validation.
 - Contract and schema tests are added to ensure the endpoint works as expected.
+**What changed:** Added a fully paginated `/api/search_strings.json` endpoint, MCP tool, schemas, and client plumbing that search all strings before slicing while emitting pagination metadata.
 **Run:** `python -m pytest -q bridge/tests/contract/test_string_search.py`
 
 ### 24) ⬜ SEARCH-FUNCTIONS-ENDPOINT — Dedicated endpoint for searching functions (ID: SEARCH-FUNCTIONS-ENDPOINT)

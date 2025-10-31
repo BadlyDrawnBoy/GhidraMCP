@@ -255,4 +255,50 @@ def strings_compact_view(
     return {"total": len(items), "items": items}
 
 
-__all__ = ["strings_compact_view", "xrefs_compact"]
+def search_strings(
+    client: GhidraClient,
+    *,
+    query: str,
+    limit: int = 100,
+    offset: int = 0,
+) -> Dict[str, object]:
+    """Search all strings in Ghidra and paginate the filtered results locally."""
+
+    if limit <= 0:
+        raise ValueError("limit must be a positive integer")
+    if offset < 0:
+        raise ValueError("offset must be a non-negative integer")
+
+    enforce_batch_limit(limit, counter="strings.search.limit")
+    increment_counter("strings.search.calls")
+
+    raw_entries = client.search_strings(query, limit=limit, offset=offset)
+    entries: Sequence[Mapping[str, object]]
+    if raw_entries is None:
+        entries = []
+    else:
+        entries = list(raw_entries)
+
+    normalized_all = strings_compact_view(entries)
+    if isinstance(normalized_all, dict):
+        all_items = normalized_all.get("items", [])
+    else:
+        all_items = []
+
+    total_results = len(all_items)
+    start = min(offset, total_results)
+    end = min(start + limit, total_results)
+    items = list(all_items[start:end])
+
+    page = offset // limit if limit else 0
+
+    return {
+        "query": query,
+        "total_results": total_results,
+        "page": page,
+        "limit": limit,
+        "items": items,
+    }
+
+
+__all__ = ["search_strings", "strings_compact_view", "xrefs_compact"]

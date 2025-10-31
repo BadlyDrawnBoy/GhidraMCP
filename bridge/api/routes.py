@@ -341,6 +341,65 @@ def make_routes(
             return JSONResponse(response)
 
     @with_client
+    async def search_strings_route(request: Request, client: GhidraClient):
+        with request_scope(
+            "search_strings",
+            logger=logger,
+            extra={"path": "/api/search_strings.json"},
+        ):
+            data, error = await _validated_json_body(
+                request, "search_strings.request.v1.json"
+            )
+            if error is not None:
+                return error
+            assert data is not None
+            try:
+                query = str(data["query"])
+                limit = int(data.get("limit", 100))
+                offset = int(data.get("offset", 0))
+            except (KeyError, TypeError, ValueError) as exc:
+                return JSONResponse(
+                    envelope_error(ErrorCode.INVALID_ARGUMENT, str(exc)),
+                    status_code=400,
+                )
+            if limit <= 0:
+                return JSONResponse(
+                    envelope_error(
+                        ErrorCode.INVALID_ARGUMENT, "limit must be a positive integer."
+                    ),
+                    status_code=400,
+                )
+            if offset < 0:
+                return JSONResponse(
+                    envelope_error(
+                        ErrorCode.INVALID_ARGUMENT,
+                        "offset must be a non-negative integer.",
+                    ),
+                    status_code=400,
+                )
+            try:
+                payload = strings.search_strings(
+                    client, query=query, limit=limit, offset=offset
+                )
+            except SafetyLimitExceeded as exc:
+                return JSONResponse(
+                    envelope_error(ErrorCode.SAFETY_LIMIT, str(exc)), status_code=400
+                )
+            except ValueError as exc:
+                return JSONResponse(
+                    envelope_error(ErrorCode.INVALID_ARGUMENT, str(exc)),
+                    status_code=400,
+                )
+
+            valid, errors = validate_payload("search_strings.v1.json", payload)
+            response = (
+                envelope_ok(payload)
+                if valid
+                else envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+            )
+            return JSONResponse(response)
+
+    @with_client
     async def mmio_annotate_route(request: Request, client: GhidraClient):
         with request_scope(
             "mmio_annotate",
@@ -391,6 +450,7 @@ def make_routes(
         Route("/api/jt_slot_process.json", jt_slot_process_route, methods=["POST"]),
         Route("/api/jt_scan.json", jt_scan_route, methods=["POST"]),
         Route("/api/strings_compact.json", strings_compact_route, methods=["POST"]),
+        Route("/api/search_strings.json", search_strings_route, methods=["POST"]),
         Route("/api/string_xrefs.json", string_xrefs_route, methods=["POST"]),
         Route("/api/mmio_annotate.json", mmio_annotate_route, methods=["POST"]),
     ]

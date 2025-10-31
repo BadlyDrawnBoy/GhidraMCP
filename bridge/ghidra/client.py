@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import json
 import logging
 from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional
 from urllib.parse import urljoin
@@ -19,6 +20,7 @@ ENDPOINT_CANDIDATES: Mapping[str, Iterable[str]] = {
     "DISASSEMBLE": ("disassemble", "disassemble_function", "disasmByAddr"),
     "FUNC_BY_ADDR": ("function_by_addr", "get_function_by_address", "functionMeta"),
     "GET_XREFS_TO": ("get_xrefs_to", "xrefs_to"),
+    "SEARCH_STRINGS": ("search_strings", "strings"),
 }
 
 POST_ENDPOINT_CANDIDATES: Mapping[str, Iterable[str]] = {
@@ -270,6 +272,54 @@ class GhidraClient:
                 continue
             out.append({"addr": addr_val, "context": context})
         return out
+
+    def search_strings(
+        self, query: str, *, limit: int = 100, offset: int = 0
+    ) -> List[Dict[str, Any]]:
+        increment_counter("ghidra.search_strings")
+        high_limit = max(100000, int(limit) + int(offset))
+        requester = EndpointRequester(
+            self,
+            "GET",
+            key="SEARCH_STRINGS",
+            params={"filter": query, "limit": high_limit, "offset": 0},
+        )
+        lines = self._get_resolver.resolve("SEARCH_STRINGS", requester)
+        if _is_error(lines):
+            return []
+        text = "\n".join(lines).strip()
+        if not text:
+            return []
+        try:
+            payload = json.loads(text)
+        except json.JSONDecodeError:
+            logger.warning("search_strings returned non-JSON payload: %s", lines[:1])
+            return []
+
+        records: List[Dict[str, Any]] = []
+        sources: Iterable[Any]
+        if isinstance(payload, list):
+            sources = payload
+        elif isinstance(payload, dict):
+            candidates = []
+            for key in ("strings", "items", "results", "data"):
+                value = payload.get(key)
+                if isinstance(value, list):
+                    candidates = value
+                    break
+            if not candidates and isinstance(payload.get("data"), dict):
+                nested = payload["data"].get("items") if isinstance(payload["data"], dict) else None
+                if isinstance(nested, list):
+                    candidates = nested
+            sources = candidates
+        else:
+            sources = []
+
+        for item in sources:
+            if isinstance(item, dict):
+                records.append(dict(item))
+
+        return records
 
     def rename_function(self, address: int, new_name: str) -> bool:
         increment_counter("ghidra.rename")
