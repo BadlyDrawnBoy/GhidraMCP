@@ -167,9 +167,9 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 
 **What changed:** Added `/api/search_strings.json`, Ghidra fetcher, MCP tool, schemas, and pagination-aware contract coverage.
 
-### 24) ⬜ SEARCH-FUNCTIONS-ENDPOINT — Dedicated endpoint for searching functions (ID: SEARCH-FUNCTIONS-ENDPOINT)
+### 24) ✅ SEARCH-FUNCTIONS-ENDPOINT — Dedicated endpoint for searching functions (ID: SEARCH-FUNCTIONS-ENDPOINT)
 **Goal:** Expose the existing server-side search for functions through a deterministic endpoint with informed pagination.
-**DoD:**
+**DoD:** _commit:b1554dc_
 - A new endpoint `/api/search_functions.json` and a corresponding MCP tool `search_functions` are created.
 - The endpoint requires a `query` parameter and supports optional `limit` and `offset`.
 - It calls the Java plugin's `/searchFunctions` endpoint.
@@ -177,6 +177,7 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 - New JSON schemas (`search_functions.request.v1.json` and `search_functions.v1.json`) are created and used for validation.
 - Contract and schema tests are added to verify the functionality.
 **Run:** `python -m pytest -q bridge/tests/contract/test_function_search.py`
+**What changed:** Added a fully-featured, tested, and schema-validated endpoint for searching functions. The implementation correctly fetches all results from the backend before applying pagination in Python and includes rich metadata in the response to enable intelligent querying by LLMs.
 
 ### Notes for the current run
 - If a task is already implemented, still write the short “What changed” line and attach the short SHA.
