@@ -1,4 +1,8 @@
-import json, time, re
+import json
+import re
+import subprocess
+import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -29,3 +33,18 @@ def test_agent_metadata_files_exist_and_valid():
     lj = json.loads(lock.read_text(encoding="utf-8"))
     assert "branch" in lj and "expires_at" in lj
     assert float(lj["expires_at"]) > time.time()
+
+
+def test_plan_files_are_consistent():
+    check_script = ROOT / "bin" / "plan_check.py"
+    result = subprocess.run(
+        [sys.executable, str(check_script)],
+        capture_output=True,
+        text=True,
+    )
+    assert (
+        result.returncode == 0
+    ), (
+        "plan_check.py failed with exit code "
+        f"{result.returncode}\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+    )

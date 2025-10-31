@@ -21,9 +21,9 @@
       "updated_at": "2025-10-30T11:19:37+01:00"
     },
     "CONTROL-FILES": {
-      "commit": null,
-      "status": "todo",
-      "updated_at": null
+      "commit": "a74a426",
+      "status": "done",
+      "updated_at": "2025-10-31T00:28:24.686639+00:00"
     },
     "DEVSERVER-ENTRYPOINT": {
       "commit": "4444174",
