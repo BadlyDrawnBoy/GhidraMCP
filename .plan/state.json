@@ -95,6 +95,16 @@
       "status": "done",
       "updated_at": "2025-10-28T01:21:10+01:00"
     },
+    "SEARCH-FUNCTIONS-ENDPOINT": {
+      "commit": null,
+      "status": "todo",
+      "updated_at": null
+    },
+    "SEARCH-STRINGS-ENDPOINT": {
+      "commit": null,
+      "status": "todo",
+      "updated_at": null
+    },
     "SNAPSHOT-SAFEGUARD": {
       "commit": "e217583",
       "status": "done",

@@ -62,8 +62,6 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 **DoD:** Golden + probe script green; no response drift. _commit:af974cb_
 **What changed:** Golden snapshots & shell probe for legacy endpoints.
 
----
-
 ## 10) ✅ CI-TESTS — Gate builds on tests before packaging (ID: CI-TESTS)
 **Goal:** CI must run unit + contract + golden tests **before** Maven packaging. Artifact is produced **only on green**.
 **DoD:** CI workflow shows tests gating packaging on a PR. Include caching and Python setup. _commit:af974cb_
@@ -96,19 +94,6 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 **DoD:** Adapter unit tests & brief docs. _commit:af974cb_
 **Run:** `python -m pytest -q bridge/tests/unit/test_adapters_*.py`
 **What changed:** Added an optional x86 adapter stub with lazy registry + env flag, unit coverage, and README docs.
-
----
-
-### Notes for the current run
-- If a task is already implemented, still write the short “What changed” line and attach the short SHA.
-- Keep **all** responses deterministic: never return fields outside the schema, always wrap in the standard envelope.
-- When writes are disabled, ensure write endpoints enforce `dry_run:true` and return a specific error otherwise.
-
-
-
----
-
-## New Tasks — Test hardening (must‑do)
 
 ### 14) ✅ WRITE-GUARDS — Writes disabled/enabled behave correctly (ID: WRITE-GUARDS)
 **Goal:** Prove that write-capable endpoints honor `ENABLE_WRITES`/`dry_run`.
@@ -160,7 +145,7 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 **DoD:** README documents mapping between legacy objects and new deterministic endpoints; quickstart reaches shim + sample request in ≤3 commands. _commit:af974cb_
 **What changed:** Added "Legacy ↔ Bridge mapping" section outlining envelopes, batching, and write guards, and rewrote the quickstart with a three-command flow.
 
-## 14) ✅ STRINGS-COMPACT — Compact strings/xrefs (ID: STRINGS-COMPACT)
+### 22) ✅ STRINGS-COMPACT — Compact strings/xrefs (ID: STRINGS-COMPACT)
 **DoD:** Provide a compact, token-friendly variant of the strings/xrefs feature that keeps determinism but minimizes payload size. Unit tests prove stable envelope/fields and a size bound; a contract test verifies deterministic ordering and invariants. README gets a Legacy ↔ Bridge row for the compact variant. _commit:af974cb_
 **What changed:** Added `/api/strings_compact.json` with deterministic ordering plus schema/tests, and documented the compact mapping in README.
 **Test:**
@@ -168,3 +153,29 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
     python -m pytest -q bridge/tests/contract/test_strings_compact_contract.py
     python3 bin/plan_check.py
 
+### 23) ⬜ SEARCH-STRINGS-ENDPOINT — Dedicated endpoint for searching all strings (ID: SEARCH-STRINGS-ENDPOINT)
+**Goal:** Avoid information loss by searching the complete set of strings on the Ghidra side *before* applying pagination. This fixes a critical flaw where filtering only happens on a limited page of results.
+**DoD:**
+- A new endpoint `/api/search_strings.json` and a corresponding MCP tool `search_strings` are created.
+- The endpoint requires a `query` parameter and supports optional `limit` and `offset` for the *results*.
+- The implementation calls the Java plugin's `/strings` endpoint, passing the `query` as the `filter` URL parameter.
+- The response payload must include pagination metadata: `query`, `total_results`, `page`, and `limit`, in addition to the `items` list. This enables the LLM to make informed decisions about refining its search.
+- New JSON schemas (`search_strings.request.v1.json` and `search_strings.v1.json`) are created and used for validation.
+- Contract and schema tests are added to ensure the endpoint works as expected.
+**Run:** `python -m pytest -q bridge/tests/contract/test_string_search.py`
+
+### 24) ⬜ SEARCH-FUNCTIONS-ENDPOINT — Dedicated endpoint for searching functions (ID: SEARCH-FUNCTIONS-ENDPOINT)
+**Goal:** Expose the existing server-side search for functions through a deterministic endpoint with informed pagination.
+**DoD:**
+- A new endpoint `/api/search_functions.json` and a corresponding MCP tool `search_functions` are created.
+- The endpoint requires a `query` parameter and supports optional `limit` and `offset`.
+- It calls the Java plugin's `/searchFunctions` endpoint.
+- The response payload must include pagination metadata: `query`, `total_results`, `page`, and `limit`, in addition to the `items` list of function objects.
+- New JSON schemas (`search_functions.request.v1.json` and `search_functions.v1.json`) are created and used for validation.
+- Contract and schema tests are added to verify the functionality.
+**Run:** `python -m pytest -q bridge/tests/contract/test_function_search.py`
+
+### Notes for the current run
+- If a task is already implemented, still write the short “What changed” line and attach the short SHA.
+- Keep **all** responses deterministic: never return fields outside the schema, always wrap in the standard envelope.
+- When writes are disabled, ensure write endpoints enforce `dry_run:true` and return a specific error otherwise.

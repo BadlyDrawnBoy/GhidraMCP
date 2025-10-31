@@ -158,6 +158,20 @@
       "after": [
         "STRINGS-ASSERTS"
       ]
+    },
+    {
+      "id": "SEARCH-STRINGS-ENDPOINT",
+      "title": "Dedicated endpoint for searching all strings",
+      "after": [
+        "STRINGS-COMPACT"
+      ]
+    },
+    {
+      "id": "SEARCH-FUNCTIONS-ENDPOINT",
+      "title": "Dedicated endpoint for searching functions",
+      "after": [
+        "SEARCH-STRINGS-ENDPOINT"
+      ]
     }
   ]
 }
