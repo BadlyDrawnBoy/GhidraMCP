@@ -301,6 +301,27 @@ class GhidraClient:
             results.append({"address": address, "literal": literal})
         return results
 
+    def search_functions(self, query: str) -> List[str]:
+        """
+        Search for functions matching the query.
+        
+        Args:
+            query: Search query string
+            
+        Returns:
+            List of strings in format "function_name @ 0xaddress"
+        """
+        increment_counter("ghidra.search_functions")
+        lines = self._request_lines(
+            "GET",
+            "searchFunctions",
+            key="SEARCH_FUNCTIONS",
+            params={"query": query, "limit": 999999},
+        )
+        if _is_error(lines):
+            return []
+        return [line.strip() for line in lines if line.strip()]
+
     def rename_function(self, address: int, new_name: str) -> bool:
         increment_counter("ghidra.rename")
         requester = EndpointRequester(

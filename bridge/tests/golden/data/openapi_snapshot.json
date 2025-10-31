@@ -33,6 +33,11 @@
         "summary": "mmio_annotate_route"
       }
     },
+    "/api/search_functions.json": {
+      "post": {
+        "summary": "search_functions_route"
+      }
+    },
     "/api/search_strings.json": {
       "post": {
         "summary": "search_strings_route"

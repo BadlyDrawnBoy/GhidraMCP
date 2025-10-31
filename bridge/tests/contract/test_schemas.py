@@ -89,6 +89,16 @@ _CASES: List[EndpointCase] = [
         missing="limit",
     ),
     EndpointCase(
+        id="search_functions",
+        path="/api/search_functions.json",
+        valid={
+            "query": "func",
+            "limit": 10,
+            "offset": 0,
+        },
+        missing="query",
+    ),
+    EndpointCase(
         id="mmio_annotate",
         path="/api/mmio_annotate.json",
         valid={

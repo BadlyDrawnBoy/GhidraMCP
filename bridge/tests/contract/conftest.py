@@ -143,6 +143,20 @@ class StubGhidraClient:
                 results.append(dict(entry))
         return results
 
+    def search_functions(self, query: str) -> List[str]:
+        """Return a predictable list of functions for testing."""
+        all_functions = [
+            f"func_{i:04d} @ 0x{0x00400000 + i * 0x100:08x}"
+            for i in range(20)
+        ]
+        # Add the functions from self._functions as well
+        for addr, meta in self._functions.items():
+            all_functions.append(f"{meta['name']} @ 0x{addr:08x}")
+        
+        # Simple filter by query
+        normalized_query = query.lower()
+        return [f for f in all_functions if normalized_query in f.lower()]
+
     def close(self) -> None:
         return None
 

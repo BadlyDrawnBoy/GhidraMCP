@@ -6,7 +6,7 @@ from typing import Callable, Dict
 
 from mcp.server.fastmcp import FastMCP
 
-from ..features import jt, mmio, strings
+from ..features import functions, jt, mmio, strings
 from ..ghidra.client import GhidraClient
 from ..utils.config import ENABLE_WRITES
 from ..utils.errors import ErrorCode
@@ -272,6 +272,51 @@ def register_tools(
                 return envelope_error(ErrorCode.INVALID_ARGUMENT, str(exc))
 
         valid, errors = validate_payload("strings_compact.v1.json", data)
+        if not valid:
+            return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+        return envelope_ok(data)
+
+    @server.tool()
+    @tool_client
+    def search_functions(
+        client,
+        query: str,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> Dict[str, object]:
+        """
+        Search for functions matching a query with pagination support.
+        
+        Args:
+            query: Search query string (function name pattern)
+            limit: Maximum number of results to return (default: 100)
+            offset: Number of results to skip for pagination (default: 0)
+            
+        Returns:
+            Dictionary with query, total_results, page, limit, and items array.
+            Each item contains name and address fields.
+        """
+        request_payload = {"query": query, "limit": limit, "offset": offset}
+        valid, errors = validate_payload("search_functions.request.v1.json", request_payload)
+        if not valid:
+            return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+
+        try:
+            with request_scope(
+                "search_functions",
+                logger=logger,
+                extra={"tool": "search_functions"},
+            ):
+                data = functions.search_functions(
+                    client,
+                    query=query,
+                    limit=limit,
+                    offset=offset,
+                )
+        except SafetyLimitExceeded as exc:
+            return envelope_error(ErrorCode.SAFETY_LIMIT, str(exc))
+
+        valid, errors = validate_payload("search_functions.v1.json", data)
         if not valid:
             return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
         return envelope_ok(data)
