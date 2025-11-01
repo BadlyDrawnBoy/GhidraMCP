@@ -215,8 +215,9 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 
 **What changed:** Guarded the SSE app with single-connection tracking, added 405 JSON for `POST /sse`, structured logging, and documented the intentional 409 in the README.
 
-### 29) ⬜ bridge_guard_02_init_barrier — Init barrier for /messages (ID: BRIDGE_GUARD_02_INIT_BARRIER)
-**DoD:** Block `/messages` until MCP session ready (425 JSON), set readiness via SSE watcher, and log "MCP INITIALIZED" once.
+### 29) ✅ bridge_guard_02_init_barrier — Init barrier for /messages (ID: BRIDGE_GUARD_02_INIT_BARRIER)
+**DoD:** Block `/messages` until MCP session ready (425 JSON), set readiness via SSE watcher, and log "MCP INITIALIZED" once. _commit:153fcfb_
+**What changed:** Added readiness event gating `/messages`, logged initialization, and covered handshake regression with tests.
 **Actions:**
 1. Add `asyncio.Event ready` to bridge state; watcher in `/sse` marks ready when session initialized.
 2. `POST /messages` returns 425 `{ "error":"mcp_not_ready" }` until ready is set, then behaves as before.
