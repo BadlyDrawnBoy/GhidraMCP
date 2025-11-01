@@ -185,7 +185,8 @@ public class GhidraMCPPlugin extends Plugin {
             Map<String, String> qparams = parseQueryParams(exchange);
             int offset = parseIntOrDefault(qparams.get("offset"), 0);
             int limit  = parseIntOrDefault(qparams.get("limit"),  100);
-            sendResponse(exchange, listImports(offset, limit));
+            String filter = qparams.get("filter");
+            sendResponse(exchange, listImports(filter, offset, limit));
         });
 
         server.createContext("/exports", exchange -> {
@@ -451,13 +452,21 @@ public class GhidraMCPPlugin extends Plugin {
         return paginateList(lines, offset, limit);
     }
 
-    private String listImports(int offset, int limit) {
+    private String listImports(String filter, int offset, int limit) {
         Program program = getCurrentProgram();
         if (program == null) return "No program loaded";
 
+        String normalized = (filter == null) ? "" : filter.toLowerCase();
         List<String> lines = new ArrayList<>();
         for (Symbol symbol : program.getSymbolTable().getExternalSymbols()) {
-            lines.add(symbol.getName() + " -> " + symbol.getAddress());
+            String name = symbol.getName();
+            if (name == null) {
+                continue;
+            }
+            if (!normalized.isEmpty() && !name.toLowerCase().contains(normalized)) {
+                continue;
+            }
+            lines.add(name + " -> " + symbol.getAddress());
         }
         return paginateList(lines, offset, limit);
     }

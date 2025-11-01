@@ -6,7 +6,7 @@ from typing import Callable, Dict
 
 from mcp.server.fastmcp import FastMCP
 
-from ..features import functions, jt, mmio, strings
+from ..features import functions, imports as import_features, jt, mmio, strings
 from ..ghidra.client import GhidraClient
 from ..utils.config import ENABLE_WRITES
 from ..utils.errors import ErrorCode
@@ -272,6 +272,43 @@ def register_tools(
                 return envelope_error(ErrorCode.INVALID_ARGUMENT, str(exc))
 
         valid, errors = validate_payload("strings_compact.v1.json", data)
+        if not valid:
+            return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+        return envelope_ok(data)
+
+    @server.tool()
+    @tool_client
+    def search_imports(
+        client,
+        query: str,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> Dict[str, object]:
+        """Search imported symbols matching a query with pagination support."""
+
+        request_payload = {"query": query, "limit": limit, "offset": offset}
+        valid, errors = validate_payload(
+            "search_imports.request.v1.json", request_payload
+        )
+        if not valid:
+            return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+
+        try:
+            with request_scope(
+                "search_imports",
+                logger=logger,
+                extra={"tool": "search_imports"},
+            ):
+                data = import_features.search_imports(
+                    client,
+                    query=query,
+                    limit=limit,
+                    offset=offset,
+                )
+        except SafetyLimitExceeded as exc:
+            return envelope_error(ErrorCode.SAFETY_LIMIT, str(exc))
+
+        valid, errors = validate_payload("search_imports.v1.json", data)
         if not valid:
             return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
         return envelope_ok(data)

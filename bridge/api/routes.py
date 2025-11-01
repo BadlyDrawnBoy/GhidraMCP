@@ -11,7 +11,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
-from ..features import functions, jt, mmio, strings
+from ..features import functions, imports as import_features, jt, mmio, strings
 from ..ghidra.client import GhidraClient
 from ..utils.config import ENABLE_WRITES, MAX_WRITES_PER_REQUEST
 from ..utils.errors import ErrorCode
@@ -398,6 +398,63 @@ def make_routes(
             return JSONResponse(response)
 
     @with_client
+    async def search_imports_route(request: Request, client: GhidraClient):
+        with request_scope(
+            "search_imports",
+            logger=logger,
+            extra={"path": "/api/search_imports.json"},
+        ):
+            data, error = await _validated_json_body(
+                request, "search_imports.request.v1.json"
+            )
+            if error is not None:
+                return error
+            assert data is not None
+            try:
+                query = str(data["query"])
+                limit = int(data.get("limit", 100))
+                offset = int(data.get("offset", 0))
+            except (KeyError, TypeError, ValueError) as exc:
+                return JSONResponse(
+                    envelope_error(ErrorCode.INVALID_ARGUMENT, str(exc)),
+                    status_code=400,
+                )
+            if limit <= 0:
+                return JSONResponse(
+                    envelope_error(
+                        ErrorCode.INVALID_ARGUMENT,
+                        "limit must be a positive integer.",
+                    ),
+                    status_code=400,
+                )
+            if offset < 0:
+                return JSONResponse(
+                    envelope_error(
+                        ErrorCode.INVALID_ARGUMENT,
+                        "offset must be a non-negative integer.",
+                    ),
+                    status_code=400,
+                )
+            try:
+                payload = import_features.search_imports(
+                    client,
+                    query=query,
+                    limit=limit,
+                    offset=offset,
+                )
+            except SafetyLimitExceeded as exc:
+                return JSONResponse(
+                    envelope_error(ErrorCode.SAFETY_LIMIT, str(exc)), status_code=400
+                )
+            valid, errors = validate_payload("search_imports.v1.json", payload)
+            response = (
+                envelope_ok(payload)
+                if valid
+                else envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+            )
+            return JSONResponse(response)
+
+    @with_client
     async def search_functions_route(request: Request, client: GhidraClient):
         with request_scope(
             "search_functions",
@@ -507,6 +564,7 @@ def make_routes(
         Route("/api/string_xrefs.json", string_xrefs_route, methods=["POST"]),
         Route("/api/search_strings.json", search_strings_route, methods=["POST"]),
         Route("/api/strings_compact.json", strings_compact_route, methods=["POST"]),
+        Route("/api/search_imports.json", search_imports_route, methods=["POST"]),
         Route("/api/search_functions.json", search_functions_route, methods=["POST"]),
         Route("/api/mmio_annotate.json", mmio_annotate_route, methods=["POST"]),
     ]
