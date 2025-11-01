@@ -200,8 +200,8 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 - Keep **all** responses deterministic: never return fields outside the schema, always wrap in the standard envelope.
 - When writes are disabled, ensure write endpoints enforce `dry_run:true` and return a specific error otherwise.
 
-### 28) ⬜ bridge_guard_01_single_sse — Single active SSE connection gate (ID: BRIDGE_GUARD_01_SINGLE_SSE)
-**DoD:** Enforce single-client `/sse` (409 on second GET) and reject POST with 405 JSON; log IP/UA connects/disconnects; README documents 409-by-design behavior.
+### 28) ✅ bridge_guard_01_single_sse — Single active SSE connection gate (ID: BRIDGE_GUARD_01_SINGLE_SSE)
+**DoD:** Enforce single-client `/sse` (409 on second GET) and reject POST with 405 JSON; log IP/UA connects/disconnects; README documents 409-by-design behavior. _commit:b4305b1_
 **Actions:**
 1. Extend bridge state with `active_sse_id` (string/None) and `connects` counter for diagnostics.
 2. `GET /sse`: reject when another client is active (409 + clear log noting IP/UA).
@@ -209,6 +209,8 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 4. Log IP & User-Agent on connect/disconnect.
 5. Add README troubleshooting note about intentional 409 on second SSE.
 **Notes:** Commit message `bridge_guard_01_single_sse: enforce single active SSE and 405 on POST`.
+
+**What changed:** Guarded the SSE app with single-connection tracking, added 405 JSON for `POST /sse`, structured logging, and documented the intentional 409 in the README.
 
 ### 29) ⬜ bridge_guard_02_init_barrier — Init barrier for /messages (ID: BRIDGE_GUARD_02_INIT_BARRIER)
 **DoD:** Block `/messages` until MCP session ready (425 JSON), set readiness via SSE watcher, and log "MCP INITIALIZED" once.
