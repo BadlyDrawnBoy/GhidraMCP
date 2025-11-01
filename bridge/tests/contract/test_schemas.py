@@ -109,6 +109,17 @@ _CASES: List[EndpointCase] = [
         missing="query",
     ),
     EndpointCase(
+        id="search_xrefs_to",
+        path="/api/search_xrefs_to.json",
+        valid={
+            "address": "0x00100000",
+            "query": "xref",
+            "limit": 10,
+            "offset": 0,
+        },
+        missing="address",
+    ),
+    EndpointCase(
         id="search_functions",
         path="/api/search_functions.json",
         valid={

@@ -43,6 +43,11 @@
         "summary": "search_exports_route"
       }
     },
+    "/api/search_xrefs_to.json": {
+      "post": {
+        "summary": "search_xrefs_to_route"
+      }
+    },
     "/api/search_functions.json": {
       "post": {
         "summary": "search_functions_route"

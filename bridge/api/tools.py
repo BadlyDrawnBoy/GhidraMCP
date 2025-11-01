@@ -13,6 +13,7 @@ from ..features import (
     jt,
     mmio,
     strings,
+    xrefs,
 )
 from ..ghidra.client import GhidraClient
 from ..utils.config import ENABLE_WRITES
@@ -353,6 +354,52 @@ def register_tools(
             return envelope_error(ErrorCode.SAFETY_LIMIT, str(exc))
 
         valid, errors = validate_payload("search_exports.v1.json", data)
+        if not valid:
+            return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+        return envelope_ok(data)
+
+    @server.tool()
+    @tool_client
+    def search_xrefs_to(
+        client,
+        address: str,
+        query: str,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> Dict[str, object]:
+        """Search cross-references to an address with pagination support."""
+
+        request_payload = {
+            "address": address,
+            "query": query,
+            "limit": limit,
+            "offset": offset,
+        }
+        valid, errors = validate_payload(
+            "search_xrefs_to.request.v1.json", request_payload
+        )
+        if not valid:
+            return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+
+        try:
+            with request_scope(
+                "search_xrefs_to",
+                logger=logger,
+                extra={"tool": "search_xrefs_to"},
+            ):
+                data = xrefs.search_xrefs_to(
+                    client,
+                    address=address,
+                    query=query,
+                    limit=limit,
+                    offset=offset,
+                )
+        except ValueError as exc:
+            return envelope_error(ErrorCode.INVALID_ARGUMENT, str(exc))
+        except SafetyLimitExceeded as exc:
+            return envelope_error(ErrorCode.SAFETY_LIMIT, str(exc))
+
+        valid, errors = validate_payload("search_xrefs_to.v1.json", data)
         if not valid:
             return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
         return envelope_ok(data)

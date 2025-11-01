@@ -192,10 +192,11 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 **Run:** `python -m pytest -q bridge/tests/contract/test_export_search.py`
 **What changed:** Added the exports search endpoint across plugin, client, schemas, routes, MCP tool, and tests with pagination and schema validation.
 
-### 27) ⬜ SEARCH-XREFS-ENDPOINT — Dedicated endpoint for searching cross-references (ID: SEARCH-XREFS-ENDPOINT)
+### 27) ✅ SEARCH-XREFS-ENDPOINT — Dedicated endpoint for searching cross-references (ID: SEARCH-XREFS-ENDPOINT)
 **Goal:** Implement server-side search for cross-references to a given address.
-**DoD:** Create a new `/api/search_xrefs_to.json` endpoint. This will require modifying the `getXrefsTo` method in `GhidraMCPPlugin.java` to accept a `filter` parameter to search within the context of the references. Follow the established pattern.
+**DoD:** Create a new `/api/search_xrefs_to.json` endpoint. This will require modifying the `getXrefsTo` method in `GhidraMCPPlugin.java` to accept a `filter` parameter to search within the context of the references. Follow the established pattern. _commit:859401c_
 **Run:** `python -m pytest -q bridge/tests/contract/test_xref_search.py`
+**What changed:** Added `/api/search_xrefs_to.json` with filter-aware plugin support, schemas, and contract coverage.
 
 ### Notes for the current run
 - If a task is already implemented, still write the short “What changed” line and attach the short SHA.
