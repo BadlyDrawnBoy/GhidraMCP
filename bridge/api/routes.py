@@ -1,10 +1,13 @@
 """Starlette routes exposing deterministic HTTP endpoints."""
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 from functools import wraps
 from typing import Callable, Dict, List, Tuple
+
+from time import perf_counter
 
 import httpx
 from starlette.requests import Request
@@ -67,14 +70,17 @@ async def _validated_json_body(
     return data, None
 
 
-def _with_client(factory: Callable[[], GhidraClient], *, enable_writes: bool):
+def _with_client(
+    factory: Callable[[], GhidraClient], *, enable_writes: bool, call_semaphore: asyncio.Semaphore
+):
     def decorator(func):
         @wraps(func)
         async def wrapper(request: Request):
             request.state.enable_writes = enable_writes
             client = factory()
             try:
-                return await func(request, client)
+                async with call_semaphore:
+                    return await func(request, client)
             finally:
                 client.close()
 
@@ -84,37 +90,63 @@ def _with_client(factory: Callable[[], GhidraClient], *, enable_writes: bool):
 
 
 def make_routes(
-    client_factory: Callable[[], GhidraClient], *, enable_writes: bool = ENABLE_WRITES
+    client_factory: Callable[[], GhidraClient], *, enable_writes: bool = ENABLE_WRITES,
+    call_semaphore: asyncio.Semaphore | None = None,
 ):
     logger = logging.getLogger("bridge.api")
-    with_client = _with_client(client_factory, enable_writes=enable_writes)
+    semaphore = call_semaphore or asyncio.Semaphore(1)
+    with_client = _with_client(
+        client_factory, enable_writes=enable_writes, call_semaphore=semaphore
+    )
 
     async def health_route(request: Request):
         request.state.enable_writes = enable_writes
         client = client_factory()
         try:
-            with request_scope(
-                "health",
-                logger=logger,
-                extra={"path": "/api/health.json"},
-            ):
-                upstream = {
-                    "base_url": client.base_url,
-                    "reachable": False,
-                }
-                try:
-                    response = client._session.get(client.base_url, timeout=2.0)
-                except httpx.HTTPError as exc:
-                    upstream["error"] = str(exc)
-                else:
-                    upstream["reachable"] = response.is_success
-                    upstream["status_code"] = response.status_code
-                payload = {
-                    "service": "ghidra-mcp-bridge",
-                    "writes_enabled": enable_writes,
-                    "ghidra": upstream,
-                }
-                return JSONResponse(envelope_ok(payload))
+            async with semaphore:
+                with request_scope(
+                    "health",
+                    logger=logger,
+                    extra={"path": "/api/health.json"},
+                ):
+                    upstream = {
+                        "base_url": client.base_url,
+                        "reachable": False,
+                    }
+                    start = perf_counter()
+                    try:
+                        response = client._session.get(client.base_url, timeout=2.0)
+                    except httpx.HTTPError as exc:
+                        duration_ms = (perf_counter() - start) * 1000.0
+                        logger.warning(
+                            "ghidra.request",
+                            extra={
+                                "method": "GET",
+                                "path": "/",
+                                "duration_ms": duration_ms,
+                                "error": str(exc),
+                            },
+                        )
+                        upstream["error"] = str(exc)
+                    else:
+                        duration_ms = (perf_counter() - start) * 1000.0
+                        logger.info(
+                            "ghidra.request",
+                            extra={
+                                "method": "GET",
+                                "path": "/",
+                                "status_code": response.status_code,
+                                "duration_ms": duration_ms,
+                            },
+                        )
+                        upstream["reachable"] = response.is_success
+                        upstream["status_code"] = response.status_code
+                    payload = {
+                        "service": "ghidra-mcp-bridge",
+                        "writes_enabled": enable_writes,
+                        "ghidra": upstream,
+                    }
+                    return JSONResponse(envelope_ok(payload))
         finally:
             client.close()
 

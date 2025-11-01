@@ -8,6 +8,7 @@ from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional
 from urllib.parse import urljoin
 
 import httpx
+from time import perf_counter
 
 from .models import FunctionMeta, Xref
 from .whitelist import DEFAULT_WHITELIST, WhitelistEntry
@@ -188,10 +189,31 @@ class GhidraClient:
         else:  # pragma: no cover - request scope always set in integration tests
             timer_extra = {"event": "timer", "operation": f"ghidra.{method.lower()}", "path": path}
         with scoped_timer(logger, f"ghidra.{method.lower()}", extra=timer_extra):
+            start = perf_counter()
             try:
                 response = self._session.request(method, url, params=params, data=data)
             except httpx.HTTPError as exc:  # pragma: no cover - transport errors are environment specific
+                duration_ms = (perf_counter() - start) * 1000.0
+                logger.warning(
+                    "ghidra.request",
+                    extra={
+                        "method": method,
+                        "path": path,
+                        "duration_ms": duration_ms,
+                        "error": str(exc),
+                    },
+                )
                 return [f"ERROR: Request failed: {exc}"]
+        duration_ms = (perf_counter() - start) * 1000.0
+        logger.info(
+            "ghidra.request",
+            extra={
+                "method": method,
+                "path": path,
+                "status_code": response.status_code,
+                "duration_ms": duration_ms,
+            },
+        )
         if response.is_error:
             return [f"ERROR: {response.status_code}: {response.text.strip()}"]
         text = response.text
