@@ -35,6 +35,7 @@ DEFAULT_WHITELIST: Dict[str, Iterable[WhitelistEntry]] = {
         WhitelistEntry("GET", "GET_XREFS_TO", ("get_xrefs_to", "xrefs_to")),
         WhitelistEntry("GET", "SEARCH_STRINGS", ("strings",)),
         WhitelistEntry("GET", "SEARCH_FUNCTIONS", ("searchFunctions",)),
+        WhitelistEntry("GET", "SEARCH_IMPORTS", ("imports",)),
     ),
     "POST": (
         WhitelistEntry(

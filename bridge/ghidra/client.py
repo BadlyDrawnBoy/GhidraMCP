@@ -301,6 +301,20 @@ class GhidraClient:
             results.append({"address": address, "literal": literal})
         return results
 
+    def search_imports(self, query: str) -> List[str]:
+        """Search for imported symbols matching the provided filter."""
+
+        increment_counter("ghidra.search_imports")
+        lines = self._request_lines(
+            "GET",
+            "imports",
+            key="SEARCH_IMPORTS",
+            params={"filter": query, "limit": 999999, "offset": 0},
+        )
+        if _is_error(lines):
+            return []
+        return [line.strip() for line in lines if line.strip()]
+
     def search_functions(self, query: str) -> List[str]:
         """
         Search for functions matching the query.

@@ -93,6 +93,10 @@ class GoldenStubGhidraClient:
                 "refs": 2,
             },
         ]
+        self._imports: List[str] = [
+            f"import_symbol_{i:04d} -> 0x{0x20000000 + i:08x}"
+            for i in range(16)
+        ]
 
     def read_dword(self, address: int) -> Optional[int]:
         return self._dwords.get(address)
@@ -151,10 +155,18 @@ class GoldenStubGhidraClient:
         # Add the functions from self._functions as well
         for addr, meta in self._functions.items():
             all_functions.append(f"{meta['name']} @ 0x{addr:08x}")
-        
+
         # Simple filter by query
         normalized_query = query.lower()
         return [f for f in all_functions if normalized_query in f.lower()]
+
+    def search_imports(self, query: str) -> List[str]:
+        normalized_query = query.lower()
+        return [
+            entry
+            for entry in self._imports
+            if not normalized_query or normalized_query in entry.lower()
+        ]
 
     def close(self) -> None:  # pragma: no cover - interface requirement
         return None

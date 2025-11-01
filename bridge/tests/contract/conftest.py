@@ -72,6 +72,10 @@ class StubGhidraClient:
                 "refs": 4,
             },
         ]
+        self._imports: List[str] = [
+            f"import_symbol_{i:04d} -> 0x{0x10000000 + i:08x}"
+            for i in range(24)
+        ]
 
     def read_dword(self, address: int) -> Optional[int]:
         index = (address - self._jt_base) // 4
@@ -152,10 +156,18 @@ class StubGhidraClient:
         # Add the functions from self._functions as well
         for addr, meta in self._functions.items():
             all_functions.append(f"{meta['name']} @ 0x{addr:08x}")
-        
+
         # Simple filter by query
         normalized_query = query.lower()
         return [f for f in all_functions if normalized_query in f.lower()]
+
+    def search_imports(self, query: str) -> List[str]:
+        normalized_query = query.lower()
+        return [
+            entry
+            for entry in self._imports
+            if not normalized_query or normalized_query in entry.lower()
+        ]
 
     def close(self) -> None:
         return None
