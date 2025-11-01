@@ -99,6 +99,16 @@ _CASES: List[EndpointCase] = [
         missing="query",
     ),
     EndpointCase(
+        id="search_exports",
+        path="/api/search_exports.json",
+        valid={
+            "query": "export",
+            "limit": 10,
+            "offset": 0,
+        },
+        missing="query",
+    ),
+    EndpointCase(
         id="search_functions",
         path="/api/search_functions.json",
         valid={

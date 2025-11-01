@@ -76,6 +76,10 @@ class StubGhidraClient:
             f"import_symbol_{i:04d} -> 0x{0x10000000 + i:08x}"
             for i in range(24)
         ]
+        self._exports: List[str] = [
+            f"export_symbol_{i:04d} -> 0x{0x20000000 + i:08x}"
+            for i in range(24)
+        ]
 
     def read_dword(self, address: int) -> Optional[int]:
         index = (address - self._jt_base) // 4
@@ -166,6 +170,14 @@ class StubGhidraClient:
         return [
             entry
             for entry in self._imports
+            if not normalized_query or normalized_query in entry.lower()
+        ]
+
+    def search_exports(self, query: str) -> List[str]:
+        normalized_query = query.lower()
+        return [
+            entry
+            for entry in self._exports
             if not normalized_query or normalized_query in entry.lower()
         ]
 

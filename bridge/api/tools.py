@@ -6,7 +6,14 @@ from typing import Callable, Dict
 
 from mcp.server.fastmcp import FastMCP
 
-from ..features import functions, imports as import_features, jt, mmio, strings
+from ..features import (
+    exports as export_features,
+    functions,
+    imports as import_features,
+    jt,
+    mmio,
+    strings,
+)
 from ..ghidra.client import GhidraClient
 from ..utils.config import ENABLE_WRITES
 from ..utils.errors import ErrorCode
@@ -309,6 +316,43 @@ def register_tools(
             return envelope_error(ErrorCode.SAFETY_LIMIT, str(exc))
 
         valid, errors = validate_payload("search_imports.v1.json", data)
+        if not valid:
+            return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+        return envelope_ok(data)
+
+    @server.tool()
+    @tool_client
+    def search_exports(
+        client,
+        query: str,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> Dict[str, object]:
+        """Search exported symbols matching a query with pagination support."""
+
+        request_payload = {"query": query, "limit": limit, "offset": offset}
+        valid, errors = validate_payload(
+            "search_exports.request.v1.json", request_payload
+        )
+        if not valid:
+            return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
+
+        try:
+            with request_scope(
+                "search_exports",
+                logger=logger,
+                extra={"tool": "search_exports"},
+            ):
+                data = export_features.search_exports(
+                    client,
+                    query=query,
+                    limit=limit,
+                    offset=offset,
+                )
+        except SafetyLimitExceeded as exc:
+            return envelope_error(ErrorCode.SAFETY_LIMIT, str(exc))
+
+        valid, errors = validate_payload("search_exports.v1.json", data)
         if not valid:
             return envelope_error(ErrorCode.SCHEMA_INVALID, "; ".join(errors))
         return envelope_ok(data)

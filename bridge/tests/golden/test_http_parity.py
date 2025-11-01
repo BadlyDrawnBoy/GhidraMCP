@@ -97,6 +97,10 @@ class GoldenStubGhidraClient:
             f"import_symbol_{i:04d} -> 0x{0x20000000 + i:08x}"
             for i in range(16)
         ]
+        self._exports: List[str] = [
+            f"export_symbol_{i:04d} -> 0x{0x30000000 + i:08x}"
+            for i in range(16)
+        ]
 
     def read_dword(self, address: int) -> Optional[int]:
         return self._dwords.get(address)
@@ -165,6 +169,14 @@ class GoldenStubGhidraClient:
         return [
             entry
             for entry in self._imports
+            if not normalized_query or normalized_query in entry.lower()
+        ]
+
+    def search_exports(self, query: str) -> List[str]:
+        normalized_query = query.lower()
+        return [
+            entry
+            for entry in self._exports
             if not normalized_query or normalized_query in entry.lower()
         ]
 

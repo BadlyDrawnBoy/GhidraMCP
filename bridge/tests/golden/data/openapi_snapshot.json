@@ -38,6 +38,11 @@
         "summary": "search_imports_route"
       }
     },
+    "/api/search_exports.json": {
+      "post": {
+        "summary": "search_exports_route"
+      }
+    },
     "/api/search_functions.json": {
       "post": {
         "summary": "search_functions_route"

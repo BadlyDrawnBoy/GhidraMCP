@@ -193,7 +193,8 @@ public class GhidraMCPPlugin extends Plugin {
             Map<String, String> qparams = parseQueryParams(exchange);
             int offset = parseIntOrDefault(qparams.get("offset"), 0);
             int limit  = parseIntOrDefault(qparams.get("limit"),  100);
-            sendResponse(exchange, listExports(offset, limit));
+            String filter = qparams.get("filter");
+            sendResponse(exchange, listExports(filter, offset, limit));
         });
 
         server.createContext("/namespaces", exchange -> {
@@ -471,7 +472,7 @@ public class GhidraMCPPlugin extends Plugin {
         return paginateList(lines, offset, limit);
     }
 
-    private String listExports(int offset, int limit) {
+    private String listExports(String filter, int offset, int limit) {
         Program program = getCurrentProgram();
         if (program == null) return "No program loaded";
 
@@ -479,11 +480,19 @@ public class GhidraMCPPlugin extends Plugin {
         SymbolIterator it = table.getAllSymbols(true);
 
         List<String> lines = new ArrayList<>();
+        String normalized = (filter == null) ? "" : filter.toLowerCase();
         while (it.hasNext()) {
             Symbol s = it.next();
             // On older Ghidra, "export" is recognized via isExternalEntryPoint()
             if (s.isExternalEntryPoint()) {
-                lines.add(s.getName() + " -> " + s.getAddress());
+                String name = s.getName();
+                if (name == null) {
+                    continue;
+                }
+                if (!normalized.isEmpty() && !name.toLowerCase().contains(normalized)) {
+                    continue;
+                }
+                lines.add(name + " -> " + s.getAddress());
             }
         }
         return paginateList(lines, offset, limit);

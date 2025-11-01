@@ -186,10 +186,11 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 **Run:** `python -m pytest -q bridge/tests/contract/test_import_search.py`
 **What changed:** Added the filtered import search endpoint, schemas, feature wiring, and contract coverage.
 
-### 26) ⬜ SEARCH-EXPORTS-ENDPOINT — Dedicated endpoint for searching exports (ID: SEARCH-EXPORTS-ENDPOINT)
+### 26) ✅ SEARCH-EXPORTS-ENDPOINT — Dedicated endpoint for searching exports (ID: SEARCH-EXPORTS-ENDPOINT)
 **Goal:** Implement server-side search for exported symbols.
-**DoD:** Create a new `/api/search_exports.json` endpoint. This will require modifying the `listExports` method in `GhidraMCPPlugin.java` to accept a `filter` parameter. Follow the established pattern.
+**DoD:** Create a new `/api/search_exports.json` endpoint. This will require modifying the `listExports` method in `GhidraMCPPlugin.java` to accept a `filter` parameter. Follow the established pattern. _commit:14c47f8_
 **Run:** `python -m pytest -q bridge/tests/contract/test_export_search.py`
+**What changed:** Added the exports search endpoint across plugin, client, schemas, routes, MCP tool, and tests with pagination and schema validation.
 
 ### 27) ⬜ SEARCH-XREFS-ENDPOINT — Dedicated endpoint for searching cross-references (ID: SEARCH-XREFS-ENDPOINT)
 **Goal:** Implement server-side search for cross-references to a given address.
