@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import json
+from typing import Any, Sequence
+
 import httpx
-from typing import Sequence
 
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse, StreamingResponse, PlainTextResponse
@@ -94,10 +96,36 @@ def build_openwebui_shim(
         }
         params = dict(request.query_params)
 
+        should_send_initialized = False
+        if headers["content-type"].startswith("application/json") and data:
+            try:
+                payload: Any = json.loads(data)
+                should_send_initialized = isinstance(payload, dict) and payload.get(
+                    "method"
+                ) == "initialize"
+            except json.JSONDecodeError:
+                pass
+
         async with httpx.AsyncClient(timeout=120, follow_redirects=True) as client:
             resp = await client.post(
                 url, content=data, headers=headers, params=params
             )
+
+            if should_send_initialized and resp.status_code < 400:
+                init_headers = {"content-type": "application/json"}
+                init_payload = json.dumps(
+                    {"jsonrpc": "2.0", "method": "initialized", "params": {}}
+                )
+                try:
+                    await client.post(
+                        url,
+                        content=init_payload,
+                        headers=init_headers,
+                        params=params,
+                    )
+                except Exception:  # noqa: BLE001 - shim must remain permissive
+                    pass
+
             return PlainTextResponse(
                 resp.text,
                 status_code=resp.status_code,
