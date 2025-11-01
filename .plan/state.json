@@ -6,19 +6,19 @@
   },
   "tasks": {
     "API-MOUNT": {
-      "commit": "b1554dc",
+      "commit": "14c47f8",
       "status": "done",
-      "updated_at": "2025-11-01T14:10:12+00:00"
+      "updated_at": "2025-11-01T19:07:00+00:00"
     },
     "CI-TESTS": {
       "commit": "c79666e",
       "status": "done",
-      "updated_at": "2025-11-01T14:10:12+00:00"
+      "updated_at": "2025-11-01T19:07:00+00:00"
     },
     "CLIENT-UNIFY": {
       "commit": "2d3b1d0",
       "status": "done",
-      "updated_at": "2025-11-01T14:10:12+00:00"
+      "updated_at": "2025-11-01T19:07:00+00:00"
     },
     "CONTROL-FILES": {
       "commit": "a74a426",
@@ -36,19 +36,19 @@
       "updated_at": "2025-10-30T02:45:47+00:00"
     },
     "JT-SCAN": {
-      "commit": "b1554dc",
+      "commit": "14c47f8",
       "status": "done",
-      "updated_at": "2025-11-01T14:10:12+00:00"
+      "updated_at": "2025-11-01T19:07:00+00:00"
     },
     "JT-SCAN-CONSISTENCY": {
-      "commit": "b1554dc",
+      "commit": "14c47f8",
       "status": "done",
-      "updated_at": "2025-11-01T14:10:12+00:00"
+      "updated_at": "2025-11-01T19:07:00+00:00"
     },
     "JT-VERIFY": {
       "commit": "844252e",
       "status": "done",
-      "updated_at": "2025-11-01T14:10:12+00:00"
+      "updated_at": "2025-11-01T19:07:00+00:00"
     },
     "LEGACY-PARITY": {
       "commit": "e024c15",
@@ -66,9 +66,9 @@
       "updated_at": "2025-10-28T01:17:13+00:00"
     },
     "OPENAPI-FREEZE": {
-      "commit": "206fb27",
+      "commit": "14c47f8",
       "status": "done",
-      "updated_at": "2025-11-01T14:10:12+00:00"
+      "updated_at": "2025-11-01T19:07:00+00:00"
     },
     "OPTIONAL-ADAPTERS": {
       "commit": "deadbee",
@@ -83,7 +83,7 @@
     "RANGE-CONTRACT": {
       "commit": "844252e",
       "status": "done",
-      "updated_at": "2025-11-01T14:10:12+00:00"
+      "updated_at": "2025-11-01T19:07:00+00:00"
     },
     "README-LEGACY-MAP": {
       "commit": "6ebf303",
@@ -111,9 +111,9 @@
       "updated_at": "2025-11-01T14:33:51+00:00"
     },
     "SEARCH-EXPORTS-ENDPOINT": {
-      "commit": null,
-      "status": "todo",
-      "updated_at": null
+      "commit": "14c47f8",
+      "status": "done",
+      "updated_at": "2025-11-01T19:07:10+00:00"
     },
     "SEARCH-XREFS-ENDPOINT": {
       "commit": null,
@@ -128,12 +128,12 @@
     "SSE-HANDSHAKE": {
       "commit": "af974cb",
       "status": "done",
-      "updated_at": "2025-11-01T14:10:12+00:00"
+      "updated_at": "2025-11-01T19:07:00+00:00"
     },
     "STRINGS-ASSERTS": {
       "commit": "af974cb",
       "status": "done",
-      "updated_at": "2025-11-01T14:10:12+00:00"
+      "updated_at": "2025-11-01T19:07:00+00:00"
     },
     "STRINGS-COMPACT": {
       "commit": "af974cb",

@@ -315,6 +315,20 @@ class GhidraClient:
             return []
         return [line.strip() for line in lines if line.strip()]
 
+    def search_exports(self, query: str) -> List[str]:
+        """Search for exported symbols matching the provided filter."""
+
+        increment_counter("ghidra.search_exports")
+        lines = self._request_lines(
+            "GET",
+            "exports",
+            key="SEARCH_EXPORTS",
+            params={"filter": query, "limit": 999999, "offset": 0},
+        )
+        if _is_error(lines):
+            return []
+        return [line.strip() for line in lines if line.strip()]
+
     def search_functions(self, query: str) -> List[str]:
         """
         Search for functions matching the query.
