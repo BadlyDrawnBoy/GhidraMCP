@@ -27,7 +27,7 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 ---
 
 ## 1) ✅ API-MOUNT — Deterministic routes & MCP tools (ID: API-MOUNT)
-**DoD:** `GET /openapi.json` 200; `POST /api/jt_slot_check.json` returns envelope. _commit:af974cb_
+**DoD:** `GET /openapi.json` 200; `POST /api/jt_slot_check.json` returns envelope. _commit:858db12_
 **What changed:** Routes mounted; integration test proves OpenAPI & envelope.
 
 ## 2) ✅ CLIENT-UNIFY — Single client + whitelist (ID: CLIENT-UNIFY)
@@ -43,7 +43,7 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 **What changed:** Probe + verify via disassembly/metadata; treat `0xE12FFF1C` as ARM sentinel.
 
 ## 5) ✅ JT-SCAN — Read‑only batch (ID: JT-SCAN)
-**DoD:** 16‑slot contract passes; `summary.total == len(items)`. _commit:af974cb_
+**DoD:** 16‑slot contract passes; `summary.total == len(items)`. _commit:858db12_
 **What changed:** Batch `jt_scan` aggregates slot checks with accurate summary.
 
 ## 6) ✅ MMIO-HEUR — Precise MMIO heuristics (ID: MMIO-HEUR)
@@ -224,8 +224,9 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 3. Ensure logs show readiness transition and optionally document SSE heartbeat if present.
 **Notes:** Commit message `bridge_guard_02_init_barrier: add readiness gate and 425 for early messages`.
 
-### 30) ⬜ bridge_guard_03_serialize_plugin — Serialize all Ghidra plugin calls (ID: BRIDGE_GUARD_03_SERIALIZE_PLUGIN)
-**DoD:** All plugin HTTP calls run under a shared semaphore with sequential timing logs.
+### 30) ✅ bridge_guard_03_serialize_plugin — Serialize all Ghidra plugin calls (ID: BRIDGE_GUARD_03_SERIALIZE_PLUGIN)
+**DoD:** All plugin HTTP calls run under a shared semaphore with sequential timing logs. _commit:858db12_
+**What changed:** Shared semaphore guards plugin traffic, logs duration per request, and tests prove serialized health probes.
 **Actions:**
 1. Introduce `asyncio.Semaphore(1)` (e.g., `ghidra_sema`) in bridge state.
 2. Wrap every plugin HTTP request (`localhost:8080` Ghidra endpoints) inside `async with ghidra_sema:`.

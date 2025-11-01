@@ -35,6 +35,9 @@ class BridgeState:
     connects: int = 0
     ready: asyncio.Event = field(default_factory=asyncio.Event)
     initialization_logged: bool = False
+    ghidra_sema: asyncio.Semaphore = field(
+        default_factory=lambda: asyncio.Semaphore(1)
+    )
 
 
 _BRIDGE_STATE = BridgeState()
@@ -248,7 +251,7 @@ def _guarded_sse_app(self: FastMCP) -> Starlette:
 
 def build_api_app() -> Starlette:
     configure()
-    routes = list(make_routes(_client_factory))
+    routes = list(make_routes(_client_factory, call_semaphore=_BRIDGE_STATE.ghidra_sema))
     schema = _build_openapi_schema(routes)
 
     async def openapi(_: Request) -> JSONResponse:

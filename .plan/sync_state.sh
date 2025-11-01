@@ -60,6 +60,12 @@ print(m.group(1) if m else (""))
 PY
 )
 
+BRIDGE_GUARD_03_SERIALIZE_PLUGIN_SHA=$(sha \
+  bridge/api/routes.py \
+  bridge/app.py \
+  bridge/ghidra/client.py \
+  bridge/tests/unit/test_plugin_serialization.py)
+
 SSE_HANDSHAKE_SHA=$(python3 - <<'PY'
 from pathlib import Path
 import re
@@ -91,6 +97,7 @@ update JT-VERIFY        "$JT_VERIFY_SHA"
 update RANGE-CONTRACT   "$RANGE_CONTRACT_SHA"
 update CLIENT-UNIFY     "$CLIENT_UNIFY_SHA"
 update STRINGS-ASSERTS   "$STRINGS_ASSERTS_SHA"
+update BRIDGE_GUARD_03_SERIALIZE_PLUGIN "$BRIDGE_GUARD_03_SERIALIZE_PLUGIN_SHA"
 update SSE-HANDSHAKE    "$SSE_HANDSHAKE_SHA"
 update CI-TESTS         "$CI_TESTS_SHA"
 
