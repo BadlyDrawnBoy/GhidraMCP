@@ -100,6 +100,14 @@ class StubGhidraClient:
     def get_xrefs_to(self, address: int, *, limit: int = 50):
         return list(self._xrefs)
 
+    def search_xrefs_to(self, address: int, query: str):
+        normalized = query.lower()
+        return [
+            dict(entry)
+            for entry in self._xrefs
+            if not normalized or normalized in str(entry["context"]).lower()
+        ]
+
     def disassemble_function(self, address: int):
         if address == 0x00005000:
             return [

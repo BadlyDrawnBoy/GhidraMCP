@@ -126,6 +126,19 @@ class GoldenStubGhidraClient:
             {"addr": 0x00006000, "context": "BL printf"},
         ][:limit]
 
+    def search_xrefs_to(self, address: int, query: str):
+        normalized = query.lower()
+        data = [
+            {"addr": 0x00005000, "context": "BL log_debug"},
+            {"addr": 0x00006000, "context": "BL printf"},
+            {"addr": 0x00007000, "context": "B other_handler"},
+        ]
+        return [
+            entry
+            for entry in data
+            if not normalized or normalized in entry["context"].lower()
+        ]
+
     def disassemble_function(self, address: int) -> List[str]:
         return list(self._disassembly.get(address, []))
 

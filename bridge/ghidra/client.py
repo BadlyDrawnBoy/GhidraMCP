@@ -92,6 +92,22 @@ def _is_error(lines: List[str]) -> bool:
     return bool(lines) and lines[0].startswith("ERROR:")
 
 
+def _parse_xref_lines(lines: Iterable[str]) -> List[Xref]:
+    out: List[Xref] = []
+    for raw in lines:
+        parts = raw.split("|", 1)
+        if not parts:
+            continue
+        addr_str = parts[0].strip()
+        context = parts[1].strip() if len(parts) > 1 else ""
+        try:
+            addr_val = int(addr_str, 16)
+        except ValueError:
+            continue
+        out.append({"addr": addr_val, "context": context})
+    return out
+
+
 def _has_confirm_true(
     params: Optional[Mapping[str, Any]], data: Optional[Mapping[str, Any]]
 ) -> bool:
@@ -258,19 +274,25 @@ class GhidraClient:
         lines = self._get_resolver.resolve("GET_XREFS_TO", requester)
         if _is_error(lines):
             return []
-        out: List[Xref] = []
-        for line in lines:
-            parts = line.split("|", 1)
-            if not parts:
-                continue
-            addr_str = parts[0].strip()
-            context = parts[1].strip() if len(parts) > 1 else ""
-            try:
-                addr_val = int(addr_str, 16)
-            except ValueError:
-                continue
-            out.append({"addr": addr_val, "context": context})
-        return out
+        return _parse_xref_lines(lines)
+
+    def search_xrefs_to(self, address: int, query: str) -> List[Xref]:
+        increment_counter("ghidra.search_xrefs_to")
+        requester = EndpointRequester(
+            self,
+            "GET",
+            key="GET_XREFS_TO",
+            params={
+                "address": f"0x{address:08x}",
+                "limit": 999999,
+                "offset": 0,
+                "filter": query,
+            },
+        )
+        lines = self._get_resolver.resolve("GET_XREFS_TO", requester)
+        if _is_error(lines):
+            return []
+        return _parse_xref_lines(lines)
 
     def search_strings(self, query: str) -> List[Dict[str, Any]]:
         increment_counter("ghidra.search_strings")

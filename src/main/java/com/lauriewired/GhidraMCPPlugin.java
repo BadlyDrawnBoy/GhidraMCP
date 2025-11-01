@@ -371,7 +371,8 @@ public class GhidraMCPPlugin extends Plugin {
             String address = qparams.get("address");
             int offset = parseIntOrDefault(qparams.get("offset"), 0);
             int limit = parseIntOrDefault(qparams.get("limit"), 100);
-            sendResponse(exchange, getXrefsTo(address, offset, limit));
+            String filter = qparams.get("filter");
+            sendResponse(exchange, getXrefsTo(address, offset, limit, filter));
         });
 
         server.createContext("/xrefs_from", exchange -> {
@@ -1528,6 +1529,10 @@ public class GhidraMCPPlugin extends Plugin {
      * Get all references to a specific address (xref to)
      */
     private String getXrefsTo(String addressStr, int offset, int limit) {
+        return getXrefsTo(addressStr, offset, limit, null);
+    }
+
+    private String getXrefsTo(String addressStr, int offset, int limit, String filter) {
         Program program = getCurrentProgram();
         if (program == null) return "No program loaded";
         if (addressStr == null || addressStr.isEmpty()) return "Address is required";
@@ -1535,21 +1540,25 @@ public class GhidraMCPPlugin extends Plugin {
         try {
             Address addr = program.getAddressFactory().getAddress(addressStr);
             ReferenceManager refManager = program.getReferenceManager();
-            
+
             ReferenceIterator refIter = refManager.getReferencesTo(addr);
-            
+
             List<String> refs = new ArrayList<>();
+            String normalized = (filter == null) ? "" : filter.toLowerCase();
             while (refIter.hasNext()) {
                 Reference ref = refIter.next();
                 Address fromAddr = ref.getFromAddress();
                 RefType refType = ref.getReferenceType();
-                
+
                 Function fromFunc = program.getFunctionManager().getFunctionContaining(fromAddr);
                 String funcInfo = (fromFunc != null) ? " in " + fromFunc.getName() : "";
-                
-                refs.add(String.format("From %s%s [%s]", fromAddr, funcInfo, refType.getName()));
+                String context = String.format("%s%s [%s]", fromAddr, funcInfo, refType.getName());
+                if (!normalized.isEmpty() && !context.toLowerCase().contains(normalized)) {
+                    continue;
+                }
+                refs.add(String.format("%s | %s", fromAddr, context));
             }
-            
+
             return paginateList(refs, offset, limit);
         } catch (Exception e) {
             return "Error getting references to address: " + e.getMessage();
