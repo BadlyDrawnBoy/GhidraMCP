@@ -251,3 +251,36 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 2. Sync `/.plan/state.json` with `status:"done"` for each bridge_guard task, including commit + timestamp.
 3. Optionally append a wrap-up note in the plan.
 **Notes:** Commit message `bridge_guard_06_close_epic: mark tasks done and tidy planning`.
+
+### 34) ⬜ DEVSERVER-SSE-MOUNT — Expose `/sse` on factory app (ID: DEVSERVER-SSE-MOUNT)
+**DoD:**
+
+* Running `uvicorn bridge.app:create_app --factory …` exposes `/sse` with:
+
+  1. the first `GET /sse` → 200 + heartbeats,
+  2. a second parallel `GET /sse` → 409,
+  3. `POST /sse` → 405 JSON `{"error":"method_not_allowed","allow":"GET"}`.
+* README includes a clear “Advanced start” section with the three `curl` checks and labels the legacy script as deprecated.
+
+**Actions:**
+
+1. Inside `bridge/app.py`’s `create_app()` register `/sse`: guarded `GET /sse` handler + `POST /sse` returning the 405 JSON.
+2. Do not change existing `/api/*` routes or `/openapi.json`.
+3. Update the README with the “Advanced start” section covering `uvicorn bridge.app:create_app --factory`, the three `curl` checks, and a note that the legacy script is **deprecated** (notice only, no removal).
+
+**Notes:** Commit `devserver: mount /sse on factory app and document advanced start`
+
+### 35) ⬜ LEGACY-DEPRECATE-DOC — Document & deprecate legacy entrypoint (ID: LEGACY-DEPRECATE-DOC)
+**DoD:**
+
+* README marks `bridge_mcp_ghidra.py` as deprecated and points to the factory start.
+* Launching the legacy script prints a clear **deprecation warning** (stderr/log) with the new start command.
+* No other spots in the repo reference the legacy script without a deprecated label.
+
+**Actions:**
+
+1. README: add a “Legacy entrypoint (deprecated)” section with the replacement command (`uvicorn …create_app --factory`) and a short rationale.
+2. `bridge_mcp_ghidra.py`: emit a visible warning on startup (e.g., `print(..., file=sys.stderr)`); keep exit code 0.
+3. Retag any references in the repo (README, `bin/*`, comments) to highlight deprecation or direct users to the factory start (no deletions).
+
+**Notes:** Commit `docs: deprecate legacy bridge entrypoint and add runtime warning`

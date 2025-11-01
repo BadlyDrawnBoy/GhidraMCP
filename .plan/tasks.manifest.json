@@ -193,6 +193,63 @@
       "after": [
         "SEARCH-EXPORTS-ENDPOINT"
       ]
+    },
+    {
+      "id": "BRIDGE_GUARD_01_SINGLE_SSE",
+      "title": "Single active SSE connection guard",
+      "after": [
+        "SSE-HANDSHAKE"
+      ]
+    },
+    {
+      "id": "BRIDGE_GUARD_02_INIT_BARRIER",
+      "title": "Initialization barrier for /messages",
+      "after": [
+        "BRIDGE_GUARD_01_SINGLE_SSE"
+      ]
+    },
+    {
+      "id": "BRIDGE_GUARD_03_SERIALIZE_PLUGIN",
+      "title": "Serialize Ghidra plugin calls",
+      "after": [
+        "BRIDGE_GUARD_02_INIT_BARRIER"
+      ]
+    },
+    {
+      "id": "BRIDGE_GUARD_04_DIAGNOSTICS",
+      "title": "Diagnostics endpoint and log polish",
+      "after": [
+        "BRIDGE_GUARD_03_SERIALIZE_PLUGIN"
+      ]
+    },
+    {
+      "id": "BRIDGE_GUARD_05_SMOKE_TESTS",
+      "title": "Bridge smoke tests and docs",
+      "after": [
+        "BRIDGE_GUARD_04_DIAGNOSTICS"
+      ]
+    },
+    {
+      "id": "BRIDGE_GUARD_06_CLOSE_EPIC",
+      "title": "Close out bridge guard epic",
+      "after": [
+        "BRIDGE_GUARD_05_SMOKE_TESTS"
+      ]
+    },
+    {
+      "id": "DEVSERVER-SSE-MOUNT",
+      "title": "Expose /sse on factory devserver",
+      "after": [
+        "DEVSERVER-ENTRYPOINT",
+        "BRIDGE_GUARD_06_CLOSE_EPIC"
+      ]
+    },
+    {
+      "id": "LEGACY-DEPRECATE-DOC",
+      "title": "Deprecate legacy entrypoint",
+      "after": [
+        "DEVSERVER-SSE-MOUNT"
+      ]
     }
   ]
 }
