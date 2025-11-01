@@ -93,6 +93,10 @@ curl -s http://127.0.0.1:8081/api/jt_slot_check.json \
   -d '{"jt_base":"0x00100000","slot_index":0,"code_min":"0x00100000","code_max":"0x0010FFFF"}' | jq
 ```
 
+### SSE Troubleshooting
+
+The `/sse` endpoint only allows a single active connection. A second `GET /sse` while another client is connected will receive `409 Conflict` with an explanatory JSON payload. This is intentional and prevents multiple OpenWebUI sessions from racing. Check the bridge logs for `sse.reject` entries to identify the rejecting IP and User-Agent, and wait for the disconnect log before retrying.
+
 ## Deterministic API Endpoints
 
 The core of this project is its schema-locked, deterministic API. All endpoints share the same reliable response envelope.
