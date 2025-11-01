@@ -199,3 +199,53 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 - If a task is already implemented, still write the short “What changed” line and attach the short SHA.
 - Keep **all** responses deterministic: never return fields outside the schema, always wrap in the standard envelope.
 - When writes are disabled, ensure write endpoints enforce `dry_run:true` and return a specific error otherwise.
+
+### 28) ⬜ bridge_guard_01_single_sse — Single active SSE connection gate (ID: BRIDGE_GUARD_01_SINGLE_SSE)
+**DoD:** Enforce single-client `/sse` (409 on second GET) and reject POST with 405 JSON; log IP/UA connects/disconnects; README documents 409-by-design behavior.
+**Actions:**
+1. Extend bridge state with `active_sse_id` (string/None) and `connects` counter for diagnostics.
+2. `GET /sse`: reject when another client is active (409 + clear log noting IP/UA).
+3. `POST /sse`: respond 405 with `{ "error":"method_not_allowed", "allow":"GET" }`.
+4. Log IP & User-Agent on connect/disconnect.
+5. Add README troubleshooting note about intentional 409 on second SSE.
+**Notes:** Commit message `bridge_guard_01_single_sse: enforce single active SSE and 405 on POST`.
+
+### 29) ⬜ bridge_guard_02_init_barrier — Init barrier for /messages (ID: BRIDGE_GUARD_02_INIT_BARRIER)
+**DoD:** Block `/messages` until MCP session ready (425 JSON), set readiness via SSE watcher, and log "MCP INITIALIZED" once.
+**Actions:**
+1. Add `asyncio.Event ready` to bridge state; watcher in `/sse` marks ready when session initialized.
+2. `POST /messages` returns 425 `{ "error":"mcp_not_ready" }` until ready is set, then behaves as before.
+3. Ensure logs show readiness transition and optionally document SSE heartbeat if present.
+**Notes:** Commit message `bridge_guard_02_init_barrier: add readiness gate and 425 for early messages`.
+
+### 30) ⬜ bridge_guard_03_serialize_plugin — Serialize all Ghidra plugin calls (ID: BRIDGE_GUARD_03_SERIALIZE_PLUGIN)
+**DoD:** All plugin HTTP calls run under a shared semaphore with sequential timing logs.
+**Actions:**
+1. Introduce `asyncio.Semaphore(1)` (e.g., `ghidra_sema`) in bridge state.
+2. Wrap every plugin HTTP request (`localhost:8080` Ghidra endpoints) inside `async with ghidra_sema:`.
+3. Emit concise timing logs per call (path, status, duration ms) to show serialization.
+**Notes:** Commit message `bridge_guard_03_serialize_plugin: single-flight guard around plugin HTTP calls`.
+
+### 31) ⬜ bridge_guard_04_diagnostics — /state endpoint & logging polish (ID: BRIDGE_GUARD_04_DIAGNOSTICS)
+**DoD:** Provide `/state` diagnostics JSON and sharpen logs for SSE/message rejections.
+**Actions:**
+1. Add `GET /state` returning `{ ready, active_sse, connects, last_init_ts }`.
+2. Ensure logs clearly note extra SSE attempts (409) and `/messages` readiness rejections (425).
+3. Update README accordingly if needed.
+**Notes:** Commit message `bridge_guard_04_diagnostics: add /state endpoint and refine logs`.
+
+### 32) ⬜ bridge_guard_05_smoke_tests — Script & README walkthrough (ID: BRIDGE_GUARD_05_SMOKE_TESTS)
+**DoD:** Smoke script exercises 405/409/425 flows and README documents the walkthrough.
+**Actions:**
+1. Add executable `scripts/smoke_bridge.sh` covering: `POST /sse` → 405, first `GET /sse` → 200 with heartbeats, second GET → 409, `/messages` → 425 pre-init (if reproducible), success after init.
+2. Document exact commands, expected outputs, and heartbeat note in README.
+3. Ensure script runs locally end-to-end.
+**Notes:** Commit message `bridge_guard_05_smoke_tests: add smoke script and README walkthrough`.
+
+### 33) ⬜ bridge_guard_06_close_epic — Close planning (ID: BRIDGE_GUARD_06_CLOSE_EPIC)
+**DoD:** Mark all `bridge_guard_0x_*` tasks complete in TODO/state with final note and no lingering in-progress entries.
+**Actions:**
+1. Upon epic completion, flip checkboxes to ✅, set `_commit:<sha>` lines, and add brief “What changed” summary.
+2. Sync `/.plan/state.json` with `status:"done"` for each bridge_guard task, including commit + timestamp.
+3. Optionally append a wrap-up note in the plan.
+**Notes:** Commit message `bridge_guard_06_close_epic: mark tasks done and tidy planning`.
