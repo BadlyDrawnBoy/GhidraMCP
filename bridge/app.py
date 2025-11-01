@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from types import MethodType
 
+from mcp import types
 from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.server import SseServerTransport
 from starlette.applications import Starlette
@@ -31,6 +33,8 @@ class BridgeState:
 
     active_sse_id: str | None = None
     connects: int = 0
+    ready: asyncio.Event = field(default_factory=asyncio.Event)
+    initialization_logged: bool = False
 
 
 _BRIDGE_STATE = BridgeState()
@@ -81,6 +85,18 @@ def configure() -> None:
         return
     configure_root()
     register_tools(MCP_SERVER, client_factory=_client_factory)
+    if types.InitializedNotification not in MCP_SERVER._mcp_server.notification_handlers:
+        async def _mark_ready(_: types.InitializedNotification) -> None:
+            async with _STATE_LOCK:
+                if not _BRIDGE_STATE.ready.is_set():
+                    _BRIDGE_STATE.ready.set()
+                    if not _BRIDGE_STATE.initialization_logged:
+                        _SSE_LOGGER.info("MCP INITIALIZED")
+                        _BRIDGE_STATE.initialization_logged = True
+
+        MCP_SERVER._mcp_server.notification_handlers[
+            types.InitializedNotification
+        ] = _mark_ready
     _CONFIGURED = True
 
 
@@ -89,6 +105,28 @@ def _guarded_sse_app(self: FastMCP) -> Starlette:
 
     configure()
     transport = SseServerTransport(self.settings.message_path)
+
+    def _replay_receive(body: bytes):
+        sent = False
+
+        async def _inner() -> dict[str, object]:
+            nonlocal sent
+            if sent:
+                return {"type": "http.request", "body": b"", "more_body": False}
+            sent = True
+            return {"type": "http.request", "body": body, "more_body": False}
+
+        return _inner
+
+    def _is_handshake_message(body: bytes) -> bool:
+        if not body:
+            return False
+        try:
+            payload = json.loads(body)
+        except json.JSONDecodeError:
+            return False
+        method = payload.get("method")
+        return method in {"initialize", "notifications/initialized"}
 
     async def handle_get(request: Request) -> None:
         client = request.client or ("unknown", 0)
@@ -111,6 +149,8 @@ def _guarded_sse_app(self: FastMCP) -> Starlette:
             connection_id = uuid.uuid4().hex
             _BRIDGE_STATE.active_sse_id = connection_id
             _BRIDGE_STATE.connects += 1
+            _BRIDGE_STATE.ready.clear()
+            _BRIDGE_STATE.initialization_logged = False
 
         _SSE_LOGGER.info(
             "sse.connect",
@@ -138,6 +178,7 @@ def _guarded_sse_app(self: FastMCP) -> Starlette:
             async with _STATE_LOCK:
                 if _BRIDGE_STATE.active_sse_id == connection_id:
                     _BRIDGE_STATE.active_sse_id = None
+                _BRIDGE_STATE.ready.clear()
             _SSE_LOGGER.info(
                 "sse.disconnect",
                 extra={
@@ -146,7 +187,7 @@ def _guarded_sse_app(self: FastMCP) -> Starlette:
                     "user_agent": user_agent,
                     "connection_id": connection_id,
                 },
-            )
+        )
 
     async def handle_post(request: Request) -> JSONResponse:
         client = request.client or ("unknown", 0)
@@ -165,12 +206,42 @@ def _guarded_sse_app(self: FastMCP) -> Starlette:
             headers={"Allow": "GET"},
         )
 
+    async def handle_message(scope, receive, send) -> None:  # type: ignore[override]
+        if scope.get("type") != "http":  # pragma: no cover - defensive
+            await transport.handle_post_message(scope, receive, send)
+            return
+
+        if _BRIDGE_STATE.ready.is_set():
+            await transport.handle_post_message(scope, receive, send)
+            return
+
+        request = Request(scope, receive)
+        body = await request.body()
+
+        if _is_handshake_message(body):
+            await transport.handle_post_message(scope, _replay_receive(body), send)
+            return
+
+        client = request.client or ("unknown", 0)
+        user_agent = request.headers.get("user-agent", "")
+        _SSE_LOGGER.warning(
+            "messages.not_ready",
+            extra={
+                "client_host": client[0],
+                "client_port": client[1],
+                "user_agent": user_agent,
+                "path": scope.get("path"),
+            },
+        )
+        response = JSONResponse({"error": "mcp_not_ready"}, status_code=425)
+        await response(scope, _replay_receive(b""), send)
+
     return Starlette(
         debug=self.settings.debug,
         routes=[
             Route(self.settings.sse_path, endpoint=handle_get, methods=["GET"]),
             Route(self.settings.sse_path, endpoint=handle_post, methods=["POST"]),
-            Mount(self.settings.message_path, app=transport.handle_post_message),
+            Mount(self.settings.message_path, app=handle_message),
         ],
     )
 
