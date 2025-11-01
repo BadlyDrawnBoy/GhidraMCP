@@ -180,10 +180,11 @@ Mirror task status and short SHA from `/.plan/TODO.md` → `/.plan/state.json`. 
 **Run:** `python -m pytest -q bridge/tests/contract/test_function_search.py`
 **What changed:** Added a fully-featured, tested, and schema-validated endpoint for searching functions. The implementation correctly fetches all results from the backend before applying pagination in Python and includes rich metadata in the response to enable intelligent querying by LLMs.
 
-### 25) ⬜ SEARCH-IMPORTS-ENDPOINT — Dedicated endpoint for searching imports (ID: SEARCH-IMPORTS-ENDPOINT)
+### 25) ✅ SEARCH-IMPORTS-ENDPOINT — Dedicated endpoint for searching imports (ID: SEARCH-IMPORTS-ENDPOINT)
 **Goal:** Implement server-side search for imported symbols.
-**DoD:** Create a new `/api/search_imports.json` endpoint. This will likely require modifying the `listImports` method in `GhidraMCPPlugin.java` to accept a `filter` parameter and apply it before pagination. Follow the established pattern for implementation (schemas, tests, etc.).
+**DoD:** Create a new `/api/search_imports.json` endpoint. This will likely require modifying the `listImports` method in `GhidraMCPPlugin.java` to accept a `filter` parameter and apply it before pagination. Follow the established pattern for implementation (schemas, tests, etc.). _commit:5bdc665_
 **Run:** `python -m pytest -q bridge/tests/contract/test_import_search.py`
+**What changed:** Added the filtered import search endpoint, schemas, feature wiring, and contract coverage.
 
 ### 26) ⬜ SEARCH-EXPORTS-ENDPOINT — Dedicated endpoint for searching exports (ID: SEARCH-EXPORTS-ENDPOINT)
 **Goal:** Implement server-side search for exported symbols.
